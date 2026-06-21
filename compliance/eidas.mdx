@@ -1,0 +1,32 @@
+---
+title: eIDAS — Electronic Signatures
+description: FlexOrch detects electronic signature formats in documents.
+---
+
+## Overview
+
+eIDAS (EU 910/2014) defines standards for electronic signatures. FlexOrch detects the presence of eIDAS-compliant signature formats in processed documents and records this in the execution metadata.
+
+## Detected signature formats
+
+| Format | Description |
+|--------|-------------|
+| XAdES | XML Advanced Electronic Signature |
+| PAdES | PDF Advanced Electronic Signature |
+| CAdES | CMS Advanced Electronic Signature |
+
+## In the execution result
+
+When an eIDAS signature is detected, the execution metadata includes:
+
+```json
+{
+  "eidas_detected": true,
+  "eidas_formats": ["PAdES"],
+  "eidas_note": "Document contains a PAdES electronic signature. Validity verification requires a qualified trust service provider (QTSP)."
+}
+```
+
+<Warning>
+  FlexOrch detects signature presence and format, but does not validate signature validity or certificate trust chains. Use a qualified trust service provider (QTSP) for legal signature validation.
+</Warning>

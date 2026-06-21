@@ -1,0 +1,139 @@
+---
+title: Pipeline
+description: How FlexOrch processes your documents — step by step.
+---
+
+## Overview
+
+Every uploaded document goes through the same pipeline. Understanding the steps helps you interpret results and troubleshoot low-quality outputs.
+
+```
+Upload → Extract text → Classify → Extract fields → Detect PII → Score quality → Deliver
+```
+
+---
+
+## Step 1 — Text extraction
+
+FlexOrch reads raw text from the document:
+
+- **PDF (text-based):** Direct text extraction
+- **PDF (scanned / image-heavy):** OCR is applied automatically when the text layer is insufficient
+- **DOCX / TXT / HTML:** Direct parse
+- **XLSX:** Cell values extracted row by row
+- **EML / MSG:** Body + headers, with HTML stripped
+- **XML e-invoices:** Structured fields parsed natively (FatturaPA, UBL/Peppol, GİB, XRechnung, ZUGFeRD)
+- **Images (JPG, PNG, TIFF):** OCR always applied
+
+The `ocr_confidence` score (0–1) is recorded when OCR runs. Values below 0.7 cap the quality grade at C.
+
+---
+
+## Step 2 — Document classification
+
+FlexOrch identifies the document type using keyword-based classification:
+
+| Type | Examples |
+|------|---------|
+| `invoice` | Sales invoices, e-invoices, purchase invoices |
+| `expense_report` | Travel expenses, reimbursement forms |
+| `purchase_order` | POs, procurement documents |
+| `sales_proposal` | Quotes, proposals, offers |
+| `bank_statement` | Account statements, transaction lists |
+| `payroll` | Payslips, salary summaries |
+| `budget` | Budget plans, financial forecasts |
+| `delivery_note` | Shipping documents, delivery confirmations |
+| `tax_declaration` | Tax forms, declarations |
+| `contract` | Agreements, SOWs |
+| `general` | Documents that don't match a specific type |
+
+The `classification_method` field in results indicates whether classification was deterministic (rule-based) or required LLM assistance.
+
+---
+
+## Step 3 — Field extraction
+
+Structured fields are extracted based on the document type. FlexOrch uses deterministic pattern matching as the primary method, with LLM fallback for fields that can't be captured by patterns.
+
+Example fields for an invoice:
+
+| Field | Example value |
+|-------|--------------|
+| `vendor` | Acme Ltd. |
+| `document_date` | 2024-01-15 |
+| `due_date` | 2024-02-15 |
+| `total_amount` | 12500.00 |
+| `currency` | EUR |
+| `iban` | DE89370400440532013000 |
+| `document_no` | INV-2024-00421 |
+| `line_items` | Array of {description, quantity, unit_price, total} |
+
+The `extraction_method_per_field` summary in results shows which fields were filled deterministically vs. by LLM.
+
+---
+
+## Step 4 — PII detection
+
+FlexOrch scans the full document text for personal and sensitive data. Detected items are:
+
+- Counted (`pii_findings_count`)
+- Categorized by type (`pii_type_summary`)
+- Optionally masked in the output (`privacy_applied`)
+
+If PII is found, the `masked_text` version is used for dataset export by default.
+
+See [PII Detection & Privacy](/guides/pii-privacy) for the full type catalog.
+
+---
+
+## Step 5 — Quality scoring
+
+A quality score (0–100) and grade (A–D) are computed based on:
+
+- Field fill rate (how many expected fields were extracted)
+- Noise ratio (proportion of meaningless content)
+- OCR confidence (for scanned documents)
+
+| Grade | Score | What it means |
+|-------|-------|--------------|
+| A | 85–100 | High quality — all key fields extracted |
+| B | 65–84 | Good — minor gaps |
+| C | 45–64 | Moderate — notable extraction issues |
+| D | 0–44 | Low — significant problems |
+
+---
+
+## Step 6 — Delivery
+
+Results are written to the pipeline execution record, accessible via the job response:
+
+```json
+{
+  "data": {
+    "status": "completed",
+    "detected_language": "tr",
+    "quality": {
+      "score": 91,
+      "grade": "A"
+    },
+    "pii_findings_count": 3,
+    "privacy_applied": true,
+    "processing_summary": {
+      "fields": { "vendor": "Acme Ltd.", "total_amount": 12500.00, ... }
+    }
+  }
+}
+```
+
+---
+
+## Reprocessing
+
+Documents can be reprocessed at any time (e.g., after a pipeline improvement):
+
+```bash
+curl -X POST https://api.flexorch.com/v1/documents/{document_id}/reprocess \
+  -H "X-API-KEY: dfx_your_key_here"
+```
+
+This creates a new job and execution. Previous results are preserved.

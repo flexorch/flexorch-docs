@@ -1,0 +1,15 @@
+---
+title: Plan Limits
+description: Scheduled sync availability by plan.
+---
+
+| Plan | Available | Min interval | Max schedules |
+|------|-----------|-------------|--------------|
+| Trial | No | — | — |
+| Starter | Yes | 24 hours | 5 per connector |
+| Pro | Yes | None | 5 per connector |
+| Enterprise | Yes | Configurable | Configurable |
+
+Attempting to create a schedule with an interval shorter than the plan minimum returns `429 RATE_LIMIT_EXCEEDED`.
+
+Trial accounts that attempt to create a schedule receive `403 PLAN_UPGRADE_REQUIRED`.

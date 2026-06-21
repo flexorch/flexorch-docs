@@ -1,0 +1,139 @@
+---
+title: Uploading Documents
+description: Supported file types, upload methods, and multi-file processing.
+---
+
+## Supported file types
+
+FlexOrch accepts the following formats:
+
+| Category | Extensions |
+|----------|-----------|
+| Documents | `.pdf`, `.docx`, `.txt` |
+| Spreadsheets | `.xlsx` |
+| Web / markup | `.html`, `.htm` |
+| Email | `.eml`, `.msg` |
+| E-invoices | `.xml` (UBL/Peppol, GİB TR, FatturaPA, XRechnung, ZUGFeRD) |
+| Images | `.jpg`, `.jpeg`, `.png`, `.tiff` |
+
+Image files and scanned PDFs are processed with OCR automatically.
+
+<Note>
+  CSV files are not supported for upload — use XLSX for tabular data.
+</Note>
+
+---
+
+## Single file upload
+
+```bash
+curl -X POST https://api.flexorch.com/v1/data-process/async \
+  -H "X-API-KEY: dfx_your_key_here" \
+  -F "files=@contract.pdf"
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "job_ids": ["job_abc123"],
+    "status": "queued"
+  }
+}
+```
+
+---
+
+## Multi-file upload
+
+Send multiple files in a single request:
+
+```bash
+curl -X POST https://api.flexorch.com/v1/data-process/async \
+  -H "X-API-KEY: dfx_your_key_here" \
+  -F "files=@invoice_jan.pdf" \
+  -F "files=@invoice_feb.pdf" \
+  -F "files=@payroll_q1.xlsx"
+```
+
+Each file gets its own `job_id`. The response includes all IDs:
+
+```json
+{
+  "data": {
+    "job_ids": ["job_001", "job_002", "job_003"],
+    "status": "queued"
+  }
+}
+```
+
+---
+
+## Upload from a connector (S3 / GCS / Azure)
+
+If you have a connector configured, you can process files directly from cloud storage without downloading them first:
+
+```bash
+curl -X POST https://api.flexorch.com/v1/data-process/async \
+  -H "X-API-KEY: dfx_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source": {
+      "connector_id": 1,
+      "keys": ["documents/invoice_2024.pdf", "documents/payroll_q1.xlsx"]
+    }
+  }'
+```
+
+See [Connectors](/connectors/overview) for setup instructions.
+
+---
+
+## File size limits
+
+| Plan | Max file size |
+|------|--------------|
+| Trial | 10 MB |
+| Starter | 25 MB |
+| Pro | 50 MB |
+| Enterprise | Configurable |
+
+Files exceeding the limit return `413 FILE_TOO_LARGE`.
+
+---
+
+## Duplicate detection
+
+FlexOrch automatically detects duplicate documents (using a content hash). If you upload a file that was already processed:
+
+- No new credit is consumed
+- The existing job and execution IDs are returned
+- Processing is skipped
+
+```json
+{
+  "data": {
+    "is_duplicate": true,
+    "existing_document_id": "doc_xyz",
+    "existing_job_id": "job_abc"
+  }
+}
+```
+
+---
+
+## Polling for results
+
+After upload, poll the job endpoint until `status` is `completed` or `failed`:
+
+```bash
+curl https://api.flexorch.com/v1/jobs/{job_id} \
+  -H "X-API-KEY: dfx_your_key_here"
+```
+
+The SDK handles polling automatically with `job.wait_until_done()`.
+
+<Tip>
+  Typical processing time is 5–30 seconds depending on file size and type. Image-heavy PDFs take longer due to OCR.
+</Tip>

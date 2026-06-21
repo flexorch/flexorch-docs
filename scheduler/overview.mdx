@@ -1,0 +1,32 @@
+---
+title: Scheduled Sync
+description: Automatically process new files from a connector on a cron schedule.
+---
+
+Scheduled sync lets FlexOrch poll a connector (S3, GCS, Azure) on a recurring schedule and automatically process any new files it finds.
+
+## Plan limits
+
+| Plan | Min interval | Max schedules per connector |
+|------|-------------|----------------------------|
+| Trial | Not available | — |
+| Starter | 24 hours | 5 |
+| Pro | No minimum | 5 |
+| Enterprise | Configurable | Configurable |
+
+## Create a schedule
+
+```bash
+curl -X POST https://api.flexorch.com/v1/connectors/{connector_id}/schedules \
+  -H "X-API-KEY: dfx_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "cron": "0 6 * * *",
+    "prefix": "incoming/",
+    "name": "Daily morning sync"
+  }'
+```
+
+The `cron` field follows standard cron syntax (UTC).
+
+See [Create a Schedule](/scheduler/create-schedule) for details.

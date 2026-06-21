@@ -1,0 +1,40 @@
+---
+title: NIS2 Audit Export
+description: Export your audit log for NIS2 incident documentation.
+---
+
+<Note>
+  Requires an account. Available on all plans.
+</Note>
+
+## Overview
+
+The NIS2 Directive (EU 2022/2555) requires organizations to document security incidents and data processing activities. FlexOrch provides an audit log export covering all pipeline activity.
+
+## Export the audit log
+
+```bash
+# JSON format
+curl "https://api.flexorch.com/v1/audit/export?format=json" \
+  -H "X-API-KEY: dfx_your_key_here" \
+  -o audit_log.json
+
+# CSV format
+curl "https://api.flexorch.com/v1/audit/export?format=csv" \
+  -H "X-API-KEY: dfx_your_key_here" \
+  -o audit_log.csv
+```
+
+## Log contents
+
+Each audit record includes:
+
+| Field | Description |
+|-------|-------------|
+| `timestamp` | Event time (UTC) |
+| `event_type` | `job.completed`, `job.failed`, `dataset.built`, `auth.login`, etc. |
+| `tenant_id` | Your account identifier |
+| `document_id` | Document affected (if applicable) |
+| `outcome` | `success` or `failure` |
+
+Raw document content and PII values are never included in the audit log.

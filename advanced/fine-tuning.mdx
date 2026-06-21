@@ -1,0 +1,42 @@
+---
+title: Fine-Tuning
+description: Export JSONL datasets and submit fine-tuning jobs to OpenAI.
+---
+
+<Note>
+  Fine-tuning job management is an **Enterprise** feature. JSONL export for self-managed fine-tuning is available on all plans.
+</Note>
+
+## Export for fine-tuning
+
+Export any dataset as JSONL:
+
+```bash
+curl "https://api.flexorch.com/v1/datasets/{id}/export?format=jsonl" \
+  -H "X-API-KEY: dfx_your_key_here" \
+  -o training_data.jsonl
+```
+
+The JSONL file is formatted for direct use with OpenAI's fine-tuning API.
+
+## Managed fine-tuning (Enterprise)
+
+Enterprise customers can submit fine-tuning jobs directly from the platform:
+
+```bash
+curl -X POST https://api.flexorch.com/v1/fine-tune \
+  -H "X-API-KEY: dfx_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "dataset_id": "ds_abc123",
+    "model": "gpt-4o-mini-2024-07-18",
+    "suffix": "invoice-extractor"
+  }'
+```
+
+Track job status:
+
+```bash
+curl https://api.flexorch.com/v1/fine-tune/{job_id} \
+  -H "X-API-KEY: dfx_your_key_here"
+```

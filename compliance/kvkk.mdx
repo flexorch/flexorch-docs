@@ -1,0 +1,44 @@
+---
+title: KVKK Compliance
+description: FlexOrch and Turkish personal data protection law (KVKK).
+---
+
+## Overview
+
+KVKK (Kişisel Verilerin Korunması Kanunu) is Turkey's personal data protection law, aligned with GDPR principles. FlexOrch detects Turkish-specific personal data types and provides masking and audit capabilities to support KVKK compliance.
+
+## Detected Turkish PII types
+
+| Type | Description | KVKK Category |
+|------|-------------|--------------|
+| `national_id_tr` | T.C. Kimlik No | Kimlik verisi |
+| `tax_id_tr` | Vergi Kimlik No | Finansal veri |
+| `phone_tr` | Turkish mobile / landline | İletişim verisi |
+| `iban_tr` | Turkish IBAN (TR prefix) | Finansal veri |
+| `emeklilik_no` | SGK Emeklilik sicil no | Sosyal güvenlik verisi |
+| `isyeri_sicil_no` | SGK İşyeri sicil no | Çalışma verisi |
+| `bagkur_no` | Bağ-Kur sicil no | Sosyal güvenlik verisi |
+
+## Masking for KVKK compliance
+
+Enable masking to ensure datasets do not contain raw personal data:
+
+```bash
+curl https://api.flexorch.com/v1/datasets/{id}/export?format=jsonl \
+  -H "X-API-KEY: dfx_your_key_here"
+```
+
+Masked fields use `[MASKED_NATIONAL_ID_TR]`, `[MASKED_IBAN_TR]` placeholders — the raw values are not included in the export.
+
+## Audit trail
+
+All pipeline executions are logged. The audit log is available via:
+
+```bash
+curl https://api.flexorch.com/v1/audit/export \
+  -H "X-API-KEY: dfx_your_key_here"
+```
+
+## Privacy policy
+
+FlexOrch Technology processes document data on behalf of its customers as a data processor under KVKK Article 12. For inquiries: privacy@flexorch.com

@@ -1,0 +1,97 @@
+---
+title: Webhooks
+description: Receive real-time notifications when jobs complete.
+---
+
+<Note>
+  Webhooks require an account. Register and manage webhooks under **Settings → Webhooks**.
+</Note>
+
+## Overview
+
+Webhooks let FlexOrch push notifications to your server when events occur — no polling required.
+
+---
+
+## Supported events
+
+| Event | When it fires |
+|-------|--------------|
+| `job.completed` | A processing job finishes successfully |
+| `job.failed` | A processing job fails |
+| `dataset.ready` | A dataset build completes |
+
+---
+
+## Register a webhook
+
+```bash
+curl -X POST https://api.flexorch.com/v1/webhooks \
+  -H "X-API-KEY: dfx_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://your-app.com/hooks/flexorch",
+    "events": ["job.completed", "job.failed"],
+    "secret": "your_signing_secret"
+  }'
+```
+
+---
+
+## Payload
+
+```json
+{
+  "event": "job.completed",
+  "job_id": "job_abc123",
+  "status": "completed",
+  "quality_grade": "A",
+  "pii_findings_count": 2,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+---
+
+## Verifying signatures
+
+Every request includes a `X-Flexorch-Signature` header. Verify it with your signing secret:
+
+```python
+import hmac
+import hashlib
+
+def verify_signature(payload_body: bytes, secret: str, signature: str) -> bool:
+    expected = hmac.new(
+        secret.encode(),
+        payload_body,
+        hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(expected, signature)
+```
+
+---
+
+## Automatic S3 export
+
+When registering a webhook for `dataset.ready`, you can configure automatic export to a connector:
+
+```json
+{
+  "url": "https://your-app.com/hooks/flexorch",
+  "events": ["dataset.ready"],
+  "auto_export": {
+    "connector_id": 1,
+    "format": "jsonl",
+    "prefix": "exports/"
+  }
+}
+```
+
+When a dataset is ready, FlexOrch exports it directly to your S3 bucket before firing the webhook.
+
+---
+
+## Retry behavior
+
+If your endpoint returns a non-2xx status, FlexOrch retries once with exponential backoff. Failed deliveries are logged in **Settings → Webhooks → Logs**.

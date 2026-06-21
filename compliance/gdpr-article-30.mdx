@@ -1,0 +1,41 @@
+---
+title: GDPR Article 30 (ROPA)
+description: Generate a Record of Processing Activities from your pipeline data.
+---
+
+## Overview
+
+GDPR Article 30 requires data controllers to maintain a record of processing activities (ROPA). FlexOrch generates a ROPA-compatible record based on your pipeline executions.
+
+## Get the ROPA record
+
+```bash
+curl https://api.flexorch.com/v1/compliance/record \
+  -H "X-API-KEY: dfx_your_key_here"
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "controller": "your-company@example.com",
+    "processing_activities": [
+      {
+        "category": "document_processing",
+        "data_subjects": ["employees", "customers", "vendors"],
+        "data_categories": ["identification", "financial", "contact"],
+        "retention_period": "30 days",
+        "technical_measures": ["pseudonymization", "encryption_at_rest"]
+      }
+    ],
+    "generated_at": "2024-01-15T10:00:00Z"
+  }
+}
+```
+
+The record reflects your actual pipeline activity — document types processed, PII categories found, and retention settings.
+
+## Export as PDF
+
+Coming soon — available for Enterprise plans.

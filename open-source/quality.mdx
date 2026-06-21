@@ -1,0 +1,95 @@
+---
+title: Quality Metrics
+description: Score document quality with quality_metrics() and noise_ratio().
+---
+
+## quality_metrics()
+
+Returns a quality score, grade, and noise ratio for a block of text.
+
+<CodeGroup>
+```python Python
+from flexorch_audit import quality_metrics
+
+text = """
+Invoice Date: 2024-01-15
+Vendor: Acme GmbH
+Total: €12,500.00
+IBAN: DE89 3704 0044 0532 0130 00
+"""
+
+metrics = quality_metrics(text)
+print(metrics)
+# {
+#   "score": 88,
+#   "grade": "A",
+#   "noise_ratio": 0.04,
+#   "detected_language": "en"
+# }
+```
+
+```javascript JavaScript
+import { qualityMetrics } from '@flexorch/audit';
+
+const metrics = await qualityMetrics(text);
+console.log(metrics.grade);        // "A"
+console.log(metrics.noiseRatio);   // 0.04
+```
+</CodeGroup>
+
+---
+
+## noise_ratio()
+
+Returns only the noise ratio (0.0–1.0) — the proportion of the text that is non-informative.
+
+<CodeGroup>
+```python Python
+from flexorch_audit import noise_ratio
+
+ratio = noise_ratio("### !!! @@@ page 1 of 10 ### !!! ###")
+print(ratio)  # 0.82
+```
+
+```javascript JavaScript
+import { noiseRatio } from '@flexorch/audit';
+
+const ratio = noiseRatio('### !!! @@@ page 1 of 10 ### !!! ###');
+console.log(ratio); // 0.82
+```
+</CodeGroup>
+
+A noise ratio above 0.20 triggers a quality penalty. Above 0.50, a warning is added to the result.
+
+---
+
+## Grade thresholds
+
+| Grade | Score |
+|-------|-------|
+| A | 85–100 |
+| B | 65–84 |
+| C | 45–64 |
+| D | 0–44 |
+
+---
+
+## estimate_tokens()
+
+Estimate token count before sending to an LLM — no tiktoken required:
+
+<CodeGroup>
+```python Python
+from flexorch_audit import estimate_tokens
+
+count = estimate_tokens(text)
+print(count)  # 142
+```
+
+```javascript JavaScript
+import { estimateTokens } from '@flexorch/audit';
+
+const count = estimateTokens(text);
+console.log(count); // 142
+```
+</CodeGroup>

@@ -1,0 +1,98 @@
+---
+title: Datasets & Export
+description: Build datasets from processed documents and export in 9 formats.
+---
+
+## Overview
+
+A dataset is a curated collection of pipeline execution results — structured fields, extracted text, and metadata — ready for LLM training, RAG, or analytics.
+
+Building and exporting datasets does **not** consume credits.
+
+---
+
+## Build a dataset
+
+After your documents are processed (job status `completed`), build a dataset:
+
+```bash
+curl -X POST https://api.flexorch.com/v1/datasets \
+  -H "X-API-KEY: dfx_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "invoices-q1", "execution_ids": ["exec_001", "exec_002"]}'
+```
+
+---
+
+## Export formats
+
+| Format | Extension | Best for |
+|--------|-----------|---------|
+| JSONL | `.jsonl` | LLM fine-tuning (OpenAI, Anthropic) |
+| CSV | `.csv` | Spreadsheet analysis |
+| Parquet | `.parquet` | Data pipelines, analytics |
+| Markdown | `.md` | RAG — LlamaIndex, LangChain |
+| XML | `.xml` | Enterprise integrations |
+| XLSX | `.xlsx` | Excel-based workflows |
+| HuggingFace Arrow | `.arrow` | `datasets.load_from_disk()` |
+| RAG chunks | `.json` | Semantic chunking with metadata |
+
+---
+
+## Export a dataset
+
+```bash
+curl "https://api.flexorch.com/v1/datasets/{id}/export?format=jsonl" \
+  -H "X-API-KEY: dfx_your_key_here" \
+  -o output.jsonl
+```
+
+---
+
+## Dataset profile
+
+Get aggregate statistics for a dataset:
+
+```bash
+curl "https://api.flexorch.com/v1/datasets/{id}/profile" \
+  -H "X-API-KEY: dfx_your_key_here"
+```
+
+Returns quality grade distribution, PII type summary, average score, and available export formats.
+
+---
+
+## Semantic indexing
+
+<Note>
+  Available on **Pro and Enterprise** plans.
+</Note>
+
+Index a dataset for semantic search:
+
+```bash
+curl -X POST "https://api.flexorch.com/v1/datasets/{id}/index" \
+  -H "X-API-KEY: dfx_your_key_here"
+```
+
+Then search:
+
+```bash
+curl -X POST "https://api.flexorch.com/v1/search" \
+  -H "X-API-KEY: dfx_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "invoices over 10000 EUR from Germany", "top_k": 5}'
+```
+
+---
+
+## Dataset retention
+
+Datasets are stored for a period defined by your plan:
+
+| Plan | Retention |
+|------|----------|
+| Trial | 7 days |
+| Starter | 30 days |
+| Pro | 90 days |
+| Enterprise | Configurable |

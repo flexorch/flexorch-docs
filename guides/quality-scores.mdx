@@ -1,0 +1,88 @@
+---
+title: Quality Scores
+description: How FlexOrch grades documents and what the scores mean for your datasets.
+---
+
+## Overview
+
+Every processed document receives a **quality score** (0–100) and a **grade** (A–D). These help you filter high-quality records and identify documents that may need attention before inclusion in a dataset.
+
+---
+
+## Quality grades
+
+| Grade | Score range | What it means |
+|-------|-------------|--------------|
+| **A** | 85–100 | High quality — key fields extracted, low noise |
+| **B** | 65–84 | Good — minor gaps or slight noise |
+| **C** | 45–64 | Moderate — notable extraction issues or OCR problems |
+| **D** | 0–44 | Low — significant problems; review before using |
+
+---
+
+## Factors that affect the score
+
+- **Field fill rate** — How many expected fields for the document type were successfully extracted
+- **Noise ratio** — Proportion of the document that is non-informative content (e.g., page numbers, repeated headers)
+- **OCR confidence** — For scanned documents, a low OCR confidence score caps the grade at C
+
+---
+
+## Accessing quality data
+
+Quality information is available in the job response:
+
+```json
+{
+  "processing_summary": {
+    "quality": {
+      "score": 91,
+      "grade": "A",
+      "field_fill_rate": 0.94,
+      "ocr_confidence": null
+    }
+  }
+}
+```
+
+`ocr_confidence` is `null` when OCR was not used (text-based PDF or DOCX).
+
+---
+
+## Quality trend
+
+Track quality over time on the **Usage → Quality** tab in the platform, or via the API:
+
+```bash
+curl "https://api.flexorch.com/v1/usage/quality-trend?period=30d" \
+  -H "X-API-KEY: dfx_your_key_here"
+```
+
+---
+
+## Filtering by grade
+
+Use the platform's **Datasets → Ready to Build** tab to filter completed jobs by grade before building a dataset. Or filter in your own pipeline:
+
+```python
+from flexorch_sdk import FlexOrch
+
+client = FlexOrch(api_key="dfx_your_key_here")
+
+# Only include grade A and B jobs in the dataset
+good_jobs = [j for j in client.jobs.list() if j.quality_grade in ("A", "B")]
+dataset = client.datasets.build(job_ids=[j.id for j in good_jobs])
+```
+
+---
+
+## Leaving feedback
+
+If a result looks wrong, you can submit feedback directly from the Jobs page (thumbs up / thumbs down) or via the API:
+
+```bash
+curl -X POST "https://api.flexorch.com/v1/jobs/{id}/feedback" \
+  -H "X-API-KEY: dfx_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"rating": "negative", "issue": "wrong_fields"}'
+```

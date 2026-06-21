@@ -1,0 +1,26 @@
+---
+title: Invite Members
+description: Add team members by email.
+---
+
+## Send an invitation
+
+```bash
+curl -X POST https://api.flexorch.com/v1/team/invite \
+  -H "Authorization: Bearer eyJ..." \
+  -H "Content-Type: application/json" \
+  -d '{"email": "colleague@company.com", "role": "member"}'
+```
+
+An email is sent to the invitee with an acceptance link. The link expires after 7 days.
+
+## Accept an invitation
+
+The invitee clicks the link in the email, creates an account (or signs in), and is added to the team.
+
+## Remove a member
+
+```bash
+curl -X DELETE https://api.flexorch.com/v1/team/members/{user_id} \
+  -H "Authorization: Bearer eyJ..."
+```

@@ -1,0 +1,53 @@
+---
+title: SDK Reference
+description: Complete Python SDK API surface.
+---
+
+## FlexOrch client
+
+```python
+from flexorch_sdk import FlexOrch
+
+client = FlexOrch(
+    api_key="dfx_...",           # Required
+    base_url="https://api.flexorch.com",  # Optional override
+    timeout=30,                   # Request timeout in seconds
+)
+```
+
+## client.jobs
+
+| Method | Description |
+|--------|-------------|
+| `upload(path)` | Upload a file and return a Job |
+| `upload_many(paths)` | Upload multiple files |
+| `upload_bytes(data, filename)` | Upload from bytes |
+| `upload_from_connector(connector_id, keys)` | Ingest from S3/GCS/Azure |
+| `get(job_id)` | Get a single job |
+| `list(page, page_size)` | List jobs with pagination |
+
+## client.datasets
+
+| Method | Description |
+|--------|-------------|
+| `build(name, job_ids)` | Build a dataset |
+| `get(dataset_id)` | Get a dataset |
+| `list(page, page_size)` | List datasets |
+| `export(dataset_id, format, path)` | Export to file |
+| `profile(dataset_id)` | Get quality and PII profile |
+
+## client.connectors
+
+| Method | Description |
+|--------|-------------|
+| `create(type, name, config)` | Create a connector |
+| `list()` | List connectors |
+| `delete(connector_id)` | Delete a connector |
+| `test(connector_id)` | Test connectivity |
+
+## client.usage
+
+| Method | Description |
+|--------|-------------|
+| `get()` | Current credit balance and plan |
+| `rate_limits()` | RPM limits and remaining |

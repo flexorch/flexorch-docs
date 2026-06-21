@@ -1,0 +1,59 @@
+---
+title: Amazon S3
+description: Connect FlexOrch to an S3 bucket.
+---
+
+## Prerequisites
+
+- An AWS account
+- An S3 bucket
+- An IAM user with `s3:GetObject` and `s3:ListBucket` permissions on the target bucket
+
+## Create the connector
+
+```bash
+curl -X POST https://api.flexorch.com/v1/connectors \
+  -H "X-API-KEY: dfx_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "s3",
+    "name": "my-s3-connector",
+    "config": {
+      "bucket": "my-documents",
+      "region": "eu-west-1",
+      "aws_access_key_id": "AKIA...",
+      "aws_secret_access_key": "..."
+    }
+  }'
+```
+
+## Ingest files
+
+```bash
+curl -X POST https://api.flexorch.com/v1/data-process/async \
+  -H "X-API-KEY: dfx_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source": {
+      "connector_id": 1,
+      "keys": [
+        "invoices/jan/inv_001.pdf",
+        "invoices/jan/inv_002.pdf"
+      ]
+    }
+  }'
+```
+
+## Config fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `bucket` | Yes | S3 bucket name |
+| `region` | Yes | AWS region (e.g., `us-east-1`) |
+| `aws_access_key_id` | Yes | IAM access key |
+| `aws_secret_access_key` | Yes | IAM secret key |
+| `prefix` | No | Default key prefix for scheduled sync |
+
+<Warning>
+  Store AWS credentials securely. The connector config is encrypted at rest.
+</Warning>

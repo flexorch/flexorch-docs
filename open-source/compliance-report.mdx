@@ -1,0 +1,76 @@
+---
+title: Compliance Report
+description: Generate a KVKK and GDPR risk summary with compliance_report().
+---
+
+## Overview
+
+`compliance_report()` analyzes detected PII and returns a structured summary of data categories, applicable regulations, and risk level.
+
+<CodeGroup>
+```python Python
+from flexorch_audit import detect_pii, compliance_report
+
+text = """
+Müşteri: Ayşe Kaya
+T.C. Kimlik: 12345678901
+E-posta: ayse.kaya@sirket.com
+IBAN: TR33 0006 1005 1978 6457 8413 26
+"""
+
+findings = detect_pii(text)
+report = compliance_report(findings)
+
+print(report)
+# {
+#   "risk_level": "high",
+#   "applicable_regulations": ["KVKK", "GDPR"],
+#   "gdpr_categories": ["identification", "financial"],
+#   "detected_countries": ["TR"],
+#   "pii_type_counts": {
+#     "national_id_tr": 1,
+#     "email": 1,
+#     "iban_tr": 1
+#   }
+# }
+```
+
+```javascript JavaScript
+import { detectPii, complianceReport } from '@flexorch/audit';
+
+const findings = detectPii(text);
+const report = complianceReport(findings);
+
+console.log(report.riskLevel);               // "high"
+console.log(report.applicableRegulations);   // ["KVKK", "GDPR"]
+```
+</CodeGroup>
+
+---
+
+## Risk levels
+
+| Level | Meaning |
+|-------|---------|
+| `none` | No PII detected |
+| `low` | Only low-risk types (email, phone) |
+| `medium` | Financial or contact data |
+| `high` | National IDs, health data, or 3+ PII types |
+
+---
+
+## GDPR categories
+
+Maps detected types to GDPR Article 9 special categories and Article 4 personal data categories:
+
+- `identification` — National IDs, passport numbers
+- `financial` — IBAN, credit card, tax ID
+- `contact` — Email, phone
+- `biometric` — (detected if present)
+- `health` — (detected if present)
+
+---
+
+## Platform compliance
+
+For platform users, the full GDPR Article 30 Record of Processing Activities (ROPA) and NIS2 audit export are available via the API. See [GDPR Article 30](/compliance/gdpr-article-30) and [NIS2 Audit Export](/compliance/nis2-audit-export).

@@ -1,0 +1,42 @@
+---
+title: BYO LLM
+description: Use your own OpenAI, Anthropic, or Azure OpenAI API key for LLM-assisted extraction.
+---
+
+<Note>
+  BYO LLM is an **Enterprise** plan feature.
+</Note>
+
+## Overview
+
+By default, FlexOrch uses a locally hosted LLM (Ollama) for extraction tasks that can't be resolved by deterministic patterns. Enterprise customers can bring their own LLM API key for higher accuracy or to use a specific model.
+
+## Supported providers
+
+| Provider | Models |
+|----------|--------|
+| OpenAI | GPT-4o, GPT-4-turbo, GPT-3.5-turbo |
+| Anthropic | claude-sonnet-4-6, claude-haiku-4-5 |
+| Azure OpenAI | Deployed model via endpoint |
+| Custom | Any OpenAI-compatible endpoint |
+
+## Configure via the platform
+
+Go to **Settings → Integrations → LLM Configuration**.
+
+Enter your provider, model, and API key. Click **Test** to verify the connection before saving.
+
+## Configure via API
+
+```bash
+curl -X POST https://api.flexorch.com/v1/settings/llm-config \
+  -H "X-API-KEY: dfx_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "openai",
+    "model": "gpt-4o",
+    "api_key": "sk-..."
+  }'
+```
+
+Once configured, the BYO LLM is used for all extraction tasks that require an LLM. Deterministic extraction (rule-based) is always attempted first — the LLM is only invoked as a fallback.

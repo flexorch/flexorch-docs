@@ -1,0 +1,65 @@
+---
+title: LlamaIndex Integration
+description: Use AuditedReader to load privacy-safe documents into LlamaIndex.
+---
+
+## Overview
+
+`flexorch-audit` ships a LlamaIndex-compatible reader that audits documents and optionally masks PII before indexing.
+
+```bash
+pip install flexorch-audit llama-index
+```
+
+---
+
+## AuditedReader
+
+```python
+from flexorch_audit.integrations.llamaindex import AuditedReader
+
+reader = AuditedReader(
+    min_grade="B",
+    mask_pii=True,
+    locales=["universal", "tr"],
+)
+
+documents = reader.load_data(
+    file_paths=["contracts/agreement.pdf", "reports/q1.docx"]
+)
+
+for doc in documents:
+    print(doc.metadata["quality_grade"])
+    print(doc.metadata["pii_findings_count"])
+    print(doc.text[:200])  # PII masked
+```
+
+---
+
+## Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `min_grade` | str | `"D"` | Minimum quality grade to include |
+| `mask_pii` | bool | `True` | Mask PII before indexing |
+| `locales` | list[str] | all | PII detection scope |
+
+---
+
+## In an index pipeline
+
+```python
+from llama_index.core import VectorStoreIndex
+from flexorch_audit.integrations.llamaindex import AuditedReader
+
+reader = AuditedReader(min_grade="B", mask_pii=True)
+documents = reader.load_data(file_paths=["data/"])
+
+index = VectorStoreIndex.from_documents(documents)
+query_engine = index.as_query_engine()
+
+response = query_engine.query("What are the payment terms in the contracts?")
+print(response)
+```
+
+Low-quality or excluded documents are available in `reader.skipped` with their grade and reason.

@@ -1,0 +1,52 @@
+---
+title: Connectors
+description: Connect FlexOrch to S3, Google Cloud Storage, or Azure Blob.
+---
+
+Connectors let FlexOrch ingest documents directly from cloud storage — no manual upload required.
+
+## Supported connectors
+
+| Connector | Type |
+|-----------|------|
+| [Amazon S3](/connectors/amazon-s3) | `s3` |
+| [Google Cloud Storage](/connectors/google-cloud-storage) | `gcs` |
+| [Azure Blob Storage](/connectors/azure-blob) | `azure_blob` |
+
+## Create a connector
+
+```bash
+curl -X POST https://api.flexorch.com/v1/connectors \
+  -H "X-API-KEY: dfx_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "s3",
+    "name": "production-docs",
+    "config": {
+      "bucket": "my-documents",
+      "region": "us-east-1",
+      "aws_access_key_id": "AKIA...",
+      "aws_secret_access_key": "..."
+    }
+  }'
+```
+
+## Test a connector
+
+```bash
+curl -X POST https://api.flexorch.com/v1/connectors/{id}/test \
+  -H "X-API-KEY: dfx_your_key_here"
+```
+
+## Use a connector
+
+Pass `source.connector_id` in an upload request:
+
+```bash
+curl -X POST https://api.flexorch.com/v1/data-process/async \
+  -H "X-API-KEY: dfx_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"source": {"connector_id": 1, "keys": ["folder/file.pdf"]}}'
+```
+
+Connectors can also be used with [Scheduled Sync](/scheduler/overview) to process new files automatically.

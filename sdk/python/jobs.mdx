@@ -1,0 +1,32 @@
+---
+title: Jobs
+description: Poll, inspect, and manage processing jobs.
+---
+
+## Get a job
+
+```python
+job = client.jobs.get("job_abc123")
+print(job.status)         # "completed"
+print(job.quality_grade)  # "A"
+```
+
+## Wait for completion
+
+```python
+result = job.wait_until_done(timeout=120, poll_interval=2)
+```
+
+## List jobs
+
+```python
+jobs = client.jobs.list(page=1, page_size=20)
+for job in jobs.items:
+    print(job.id, job.status, job.quality_grade)
+```
+
+## Submit feedback
+
+```python
+job.feedback(rating="negative", issue="wrong_fields")
+```

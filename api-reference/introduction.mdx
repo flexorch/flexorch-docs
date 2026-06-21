@@ -1,0 +1,59 @@
+---
+title: API Reference
+description: FlexOrch REST API — full endpoint reference.
+---
+
+## Base URL
+
+```
+https://api.flexorch.com/v1
+```
+
+## Authentication
+
+All requests require either an API key or a JWT token:
+
+```bash
+# API key
+-H "X-API-KEY: dfx_your_key_here"
+
+# JWT token
+-H "Authorization: Bearer eyJ..."
+```
+
+## Response format
+
+All responses follow the same envelope:
+
+```json
+{
+  "data": { ... }
+}
+```
+
+Errors:
+
+```json
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable message"
+  }
+}
+```
+
+## Common error codes
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `INVALID_API_KEY` | 401 | Key not found or revoked |
+| `TRIAL_EXPIRED` | 402 | Trial period ended |
+| `QUOTA_EXCEEDED` | 429 | Credit limit reached |
+| `RATE_LIMIT_EXCEEDED` | 429 | RPM limit reached |
+| `PLAN_UPGRADE_REQUIRED` | 403 | Feature not available on your plan |
+| `FILE_TOO_LARGE` | 413 | File exceeds plan limit |
+| `UNSUPPORTED_FILE` | 415 | File type not supported |
+
+## Auto-generated reference
+
+The full endpoint reference below is generated directly from the [OpenAPI spec](https://api.flexorch.com/openapi.json) and is always up to date.

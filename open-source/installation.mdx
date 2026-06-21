@@ -1,0 +1,55 @@
+---
+title: Installation
+description: Install flexorch-audit for Python or JavaScript.
+---
+
+## Python
+
+```bash
+pip install flexorch-audit
+```
+
+Requires Python 3.10+. No external dependencies.
+
+**Verify:**
+
+```python
+from flexorch_audit import audit
+
+result = audit("Test email: hello@example.com")
+print(result["pii_summary"]["count"])  # 1
+```
+
+---
+
+## JavaScript / TypeScript
+
+```bash
+npm install @flexorch/audit
+```
+
+Requires Node.js 18+. No external dependencies.
+
+**Verify:**
+
+```javascript
+import { audit } from '@flexorch/audit';
+
+const result = await audit('Test email: hello@example.com');
+console.log(result.piiSummary.count); // 1
+```
+
+Or with CommonJS:
+
+```javascript
+const { audit } = require('@flexorch/audit');
+```
+
+---
+
+## Versions
+
+| Package | Latest | Changelog |
+|---------|--------|-----------|
+| `flexorch-audit` (Python) | [PyPI](https://pypi.org/project/flexorch-audit) | [CHANGELOG](https://github.com/flexorch/flexorch-audit/blob/main/CHANGELOG.md) |
+| `@flexorch/audit` (JS) | [npm](https://www.npmjs.com/package/@flexorch/audit) | [CHANGELOG](https://github.com/flexorch/flexorch-audit-js/blob/main/CHANGELOG.md) |

@@ -1,0 +1,138 @@
+---
+title: PII Detection
+description: Detect personal data in text with detect_pii() — 46 types, TR/EU/US.
+---
+
+## Installation
+
+<CodeGroup>
+```bash Python
+pip install flexorch-audit
+```
+
+```bash JavaScript
+npm install @flexorch/audit
+```
+</CodeGroup>
+
+---
+
+## Basic usage
+
+<CodeGroup>
+```python Python
+from flexorch_audit import detect_pii
+
+text = "Contact us at info@company.com or call +90 555 123 4567."
+
+findings = detect_pii(text)
+
+for f in findings:
+    print(f["type"], f["value"], f["start"], f["end"])
+# email  info@company.com  14  32
+# phone_tr  +90 555 123 4567  39  56
+```
+
+```javascript JavaScript
+import { detectPii } from '@flexorch/audit';
+
+const text = 'Contact us at info@company.com or call +90 555 123 4567.';
+
+const findings = detectPii(text);
+
+for (const f of findings) {
+  console.log(f.type, f.value, f.start, f.end);
+}
+// email  info@company.com  14  32
+// phone_tr  +90 555 123 4567  39  56
+```
+</CodeGroup>
+
+---
+
+## Locale filtering
+
+By default, all locales are active. Restrict detection to specific jurisdictions:
+
+<CodeGroup>
+```python Python
+from flexorch_audit import detect_pii
+
+# Only detect universal + Turkish types
+findings = detect_pii(text, locales=["universal", "tr"])
+
+# Only EU types
+findings = detect_pii(text, locales=["universal", "de", "fr", "it", "nl", "es", "pl"])
+```
+
+```javascript JavaScript
+import { detectPii } from '@flexorch/audit';
+
+// Only detect universal + Turkish types
+const findings = detectPii(text, { locales: ['universal', 'tr'] });
+```
+</CodeGroup>
+
+Available locale values: `"universal"`, `"tr"`, `"de"`, `"fr"`, `"it"`, `"nl"`, `"es"`, `"pl"`, `"uk"`, `"us"`, `"at"`, `"be"`, `"se"`, `"dk"`, `"fi"`, `"pt"`
+
+---
+
+## Finding structure
+
+Each finding contains:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `type` | string | PII type identifier (e.g., `email`, `national_id_tr`) |
+| `value` | string | The matched text |
+| `start` | int | Start character position |
+| `end` | int | End character position |
+| `locale` | string | Jurisdiction (`tr`, `de`, `universal`, …) |
+
+---
+
+## Batch processing
+
+<CodeGroup>
+```python Python
+from flexorch_audit import detect_pii_batch
+
+texts = [
+    "Customer: john@example.com",
+    "IBAN: DE89 3704 0044 0532 0130 00",
+    "No sensitive data here.",
+]
+
+results = detect_pii_batch(texts)
+# List of finding lists, one per input
+```
+
+```javascript JavaScript
+import { detectPiiBatch } from '@flexorch/audit';
+
+const results = detectPiiBatch([
+  'Customer: john@example.com',
+  'IBAN: DE89 3704 0044 0532 0130 00',
+  'No sensitive data here.',
+]);
+```
+</CodeGroup>
+
+---
+
+## Streaming large files
+
+<CodeGroup>
+```python Python
+from flexorch_audit import audit_stream
+
+for chunk_result in audit_stream("large_document.txt", chunk_size=5000):
+    print(chunk_result["pii_summary"]["count"])
+```
+</CodeGroup>
+
+---
+
+## Supported PII types
+
+See [PII Detection & Privacy](/guides/pii-privacy) for the complete list of 46 types across all jurisdictions.

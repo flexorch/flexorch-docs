@@ -1,0 +1,36 @@
+---
+title: Azure Blob Storage
+description: Connect FlexOrch to an Azure Blob container.
+---
+
+## Prerequisites
+
+- An Azure Storage account
+- A blob container
+- A storage account access key (or SAS token — coming soon)
+
+## Create the connector
+
+```bash
+curl -X POST https://api.flexorch.com/v1/connectors \
+  -H "X-API-KEY: dfx_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "azure_blob",
+    "name": "my-azure-connector",
+    "config": {
+      "account_name": "mystorageaccount",
+      "container_name": "documents",
+      "account_key": "..."
+    }
+  }'
+```
+
+## Config fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `account_name` | Yes | Azure Storage account name |
+| `container_name` | Yes | Blob container name |
+| `account_key` | Yes | Storage account key |
+| `prefix` | No | Default blob prefix for scheduled sync |

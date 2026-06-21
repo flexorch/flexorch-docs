@@ -1,0 +1,170 @@
+---
+title: PII Detection & Privacy
+description: Personal data types detected by FlexOrch, masking strategies, and compliance outputs.
+---
+
+## Overview
+
+FlexOrch detects personal and sensitive data in your documents before they enter a dataset. Detected PII is masked in the output, giving you clean training data without privacy risk.
+
+Detection covers **46 PII types** across Turkish, EU, and US jurisdictions.
+
+---
+
+## Detected types
+
+### Universal
+
+| Type | Description |
+|------|-------------|
+| `email` | Email addresses |
+| `credit_card` | Credit card numbers (all major schemes, Luhn-validated) |
+| `ip` | IPv4 addresses |
+| `ip_v6` | IPv6 addresses |
+| `iban` | International bank account numbers (IBAN, mod-97 validated) |
+
+### Turkey (TR)
+
+| Type | Description |
+|------|-------------|
+| `national_id_tr` | T.C. Kimlik No (11 digits) |
+| `tax_id_tr` | Vergi Kimlik No (10 digits, VKN) |
+| `phone_tr` | Turkish mobile and landline numbers |
+| `iban_tr` | Turkish IBANs (TR prefix, 26 chars) |
+| `emeklilik_no` | SGK Emeklilik sicil no |
+| `isyeri_sicil_no` | SGK İşyeri sicil no |
+| `bagkur_no` | Bağ-Kur sicil no |
+
+### Germany (DE)
+
+| Type | Description |
+|------|-------------|
+| `national_id_de` | Personalausweis number |
+| `tax_id_de` | Steueridentifikationsnummer (11 digits) |
+| `phone_de` | German phone numbers |
+| `iban_de` | German IBANs (DE prefix) |
+
+### France (FR)
+
+| Type | Description |
+|------|-------------|
+| `national_id_fr` | Numéro de sécurité sociale (15 digits) |
+| `tax_id_fr` | Numéro SPI / NIF |
+| `phone_fr` | French phone numbers |
+| `iban_fr` | French IBANs (FR prefix) |
+
+### Italy (IT)
+
+| Type | Description |
+|------|-------------|
+| `national_id_it` | Codice Fiscale (alphanumeric) |
+| `phone_it` | Italian phone numbers |
+| `iban_it` | Italian IBANs (IT prefix) |
+
+### Netherlands (NL)
+
+| Type | Description |
+|------|-------------|
+| `national_id_nl` | Burgerservicenummer (BSN, 9 digits) |
+| `tax_id_nl` | BTW-nummer |
+| `phone_nl` | Dutch phone numbers |
+
+### Spain (ES)
+
+| Type | Description |
+|------|-------------|
+| `national_id_es` | DNI / NIE |
+| `tax_id_es` | NIF |
+| `phone_es` | Spanish phone numbers |
+
+### Poland (PL)
+
+| Type | Description |
+|------|-------------|
+| `national_id_pl` | PESEL (11 digits) |
+| `tax_id_pl` | NIP (10 digits) |
+| `phone_pl` | Polish phone numbers |
+
+### United Kingdom (UK) & United States (US)
+
+| Type | Description |
+|------|-------------|
+| `national_id_uk` | National Insurance Number (NINO) |
+| `ssn_us` | Social Security Number |
+| `phone_uk` | UK phone numbers |
+| `phone_us` | US phone numbers |
+
+### Additional EU jurisdictions
+
+Austria, Belgium, Sweden, Denmark, Finland, Portugal — national ID and phone types covered.
+
+---
+
+## Masking strategies
+
+When PII is detected, FlexOrch replaces each finding with a placeholder. The default strategy is `redact`:
+
+| Strategy | Output example | Use case |
+|----------|---------------|---------|
+| `redact` | `[MASKED_EMAIL]` | Production datasets, fine-tuning |
+| `replace` | `person@example.com` | Testing, plausible synthetic data |
+| `token` | `<EMAIL_1>` | Preserving structure for NLP tasks |
+| `hash` | `a3f2b1...` | Deterministic anonymization |
+
+---
+
+## Results in the API
+
+After processing, PII information is available in the job response:
+
+```json
+{
+  "pii_findings_count": 4,
+  "privacy_applied": true,
+  "processing_summary": {
+    "pii_type_summary": {
+      "email": 2,
+      "national_id_tr": 1,
+      "iban": 1
+    }
+  }
+}
+```
+
+The full type breakdown is also available in the dataset profile:
+
+```bash
+curl https://api.flexorch.com/v1/datasets/{id}/profile \
+  -H "X-API-KEY: dfx_your_key_here"
+```
+
+---
+
+## KVKK & GDPR compliance
+
+FlexOrch generates a compliance report for each dataset:
+
+```bash
+curl https://api.flexorch.com/v1/datasets/{id}/profile \
+  -H "X-API-KEY: dfx_your_key_here"
+```
+
+The profile includes:
+- `gdpr_categories` — GDPR Article 9 special category flags
+- `detected_countries` — Jurisdictions found in the data
+- `applicable_regulations` — KVKK, GDPR, NIS2, eIDAS as relevant
+
+For the GDPR Article 30 Record of Processing Activities (ROPA), use:
+
+```bash
+curl https://api.flexorch.com/v1/compliance/record \
+  -H "X-API-KEY: dfx_your_key_here"
+```
+
+---
+
+## Open source
+
+PII detection is also available as a standalone, zero-dependency package — no FlexOrch account required.
+
+See [flexorch-audit](/open-source/overview) for installation and usage.

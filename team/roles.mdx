@@ -1,0 +1,27 @@
+---
+title: Roles & Permissions
+description: What each role can do.
+---
+
+| Action | Viewer | Member | Admin | Owner |
+|--------|--------|--------|-------|-------|
+| View documents, jobs, datasets | ✓ | ✓ | ✓ | ✓ |
+| Upload documents | — | ✓ | ✓ | ✓ |
+| Build datasets and export | — | ✓ | ✓ | ✓ |
+| Manage webhooks | — | — | ✓ | ✓ |
+| Manage connectors | — | — | ✓ | ✓ |
+| Invite / remove members | — | — | ✓ | ✓ |
+| Change member roles | — | — | ✓ | ✓ |
+| Manage billing | — | — | — | ✓ |
+| Delete account | — | — | — | ✓ |
+
+## Update a member's role
+
+```bash
+curl -X PATCH https://api.flexorch.com/v1/team/members/{user_id}/role \
+  -H "Authorization: Bearer eyJ..." \
+  -H "Content-Type: application/json" \
+  -d '{"role": "admin"}'
+```
+
+The team owner's role cannot be changed. There must always be at least one owner.

@@ -1,0 +1,37 @@
+---
+title: Google Cloud Storage
+description: Connect FlexOrch to a GCS bucket.
+---
+
+## Prerequisites
+
+- A Google Cloud project
+- A GCS bucket
+- A service account with `storage.objects.get` and `storage.objects.list` roles
+- A service account JSON key
+
+## Create the connector
+
+```bash
+curl -X POST https://api.flexorch.com/v1/connectors \
+  -H "X-API-KEY: dfx_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "gcs",
+    "name": "my-gcs-connector",
+    "config": {
+      "project_id": "my-gcp-project",
+      "bucket": "my-documents",
+      "credentials_json": "{\"type\": \"service_account\", ...}"
+    }
+  }'
+```
+
+## Config fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `project_id` | Yes | GCP project ID |
+| `bucket` | Yes | GCS bucket name |
+| `credentials_json` | Yes | Service account key JSON (as string) |
+| `prefix` | No | Default key prefix for scheduled sync |

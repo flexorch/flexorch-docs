@@ -1,0 +1,84 @@
+---
+title: Masking
+description: Replace detected PII with placeholders using mask().
+---
+
+## Overview
+
+`mask()` takes text and a list of PII findings, and returns the text with each finding replaced according to your chosen strategy.
+
+---
+
+## Basic usage
+
+<CodeGroup>
+```python Python
+from flexorch_audit import detect_pii, mask
+
+text = "Email us at hello@example.com or call +49 30 1234567."
+
+findings = detect_pii(text)
+masked = mask(text, findings)
+
+print(masked)
+# Email us at [MASKED_EMAIL] or call [MASKED_PHONE_DE].
+```
+
+```javascript JavaScript
+import { detectPii, mask } from '@flexorch/audit';
+
+const text = 'Email us at hello@example.com or call +49 30 1234567.';
+
+const findings = detectPii(text);
+const masked = mask(text, findings);
+
+console.log(masked);
+// Email us at [MASKED_EMAIL] or call [MASKED_PHONE_DE].
+```
+</CodeGroup>
+
+---
+
+## Strategies
+
+| Strategy | Example output | Use case |
+|----------|---------------|---------|
+| `redact` (default) | `[MASKED_EMAIL]` | Production datasets |
+| `replace` | `user@example.com` | Synthetic plausible data |
+| `token` | `<EMAIL_1>` | Structure-preserving NLP |
+| `hash` | `a3f2b19c...` | Deterministic anonymization |
+
+<CodeGroup>
+```python Python
+masked = mask(text, findings, strategy="token")
+# Email us at <EMAIL_1> or call <PHONE_DE_1>.
+```
+
+```javascript JavaScript
+const masked = mask(text, findings, { strategy: 'token' });
+```
+</CodeGroup>
+
+---
+
+## One-liner
+
+Use `redact_for_llm()` to detect and mask in a single call — optimized for LLM input preparation:
+
+<CodeGroup>
+```python Python
+from flexorch_audit import redact_for_llm
+
+clean_text, summary = redact_for_llm(text)
+print(clean_text)
+print(summary)  # {"count": 2, "types": ["email", "phone_de"]}
+```
+
+```javascript JavaScript
+import { redactForLlm } from '@flexorch/audit';
+
+const { text: cleanText, summary } = await redactForLlm(text);
+```
+</CodeGroup>
+
+See [redact_for_llm](/open-source/redact-for-llm) for full details.

@@ -1,0 +1,32 @@
+---
+title: Upload
+description: Upload documents using the Python SDK.
+---
+
+## Single file
+
+```python
+job = client.jobs.upload("invoice.pdf")
+```
+
+## Multiple files
+
+```python
+jobs = client.jobs.upload_many(["invoice.pdf", "payroll.xlsx", "contract.docx"])
+```
+
+## From bytes
+
+```python
+with open("document.pdf", "rb") as f:
+    job = client.jobs.upload_bytes(f.read(), filename="document.pdf")
+```
+
+## From a connector
+
+```python
+job = client.jobs.upload_from_connector(
+    connector_id=1,
+    keys=["documents/invoice_2024.pdf"]
+)
+```

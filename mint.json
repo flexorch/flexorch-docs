@@ -1,0 +1,163 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "FlexOrch",
+  "logo": {
+    "light": "/images/logo/light.svg",
+    "dark": "/images/logo/dark.svg",
+    "href": "https://flexorch.com"
+  },
+  "favicon": "/images/favicon.png",
+  "colors": {
+    "primary": "#2563eb",
+    "light": "#60a5fa",
+    "dark": "#1e40af",
+    "anchors": {
+      "from": "#2563eb",
+      "to": "#7c3aed"
+    }
+  },
+  "topbarLinks": [
+    { "name": "Platform", "url": "https://app.flexorch.com" },
+    { "name": "GitHub", "url": "https://github.com/flexorch" }
+  ],
+  "topbarCtaButton": {
+    "name": "Get Started Free",
+    "url": "https://app.flexorch.com/signup"
+  },
+  "tabs": [
+    {
+      "name": "API Reference",
+      "url": "api-reference"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "PyPI",
+      "icon": "python",
+      "url": "https://pypi.org/project/flexorch-audit"
+    },
+    {
+      "name": "npm",
+      "icon": "npm",
+      "url": "https://www.npmjs.com/package/@flexorch/audit"
+    },
+    {
+      "name": "GitHub",
+      "icon": "github",
+      "url": "https://github.com/flexorch"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Get Started",
+      "pages": ["introduction", "concepts", "quickstart"]
+    },
+    {
+      "group": "Authentication",
+      "pages": ["authentication/api-keys", "authentication/jwt"]
+    },
+    {
+      "group": "Guides",
+      "pages": [
+        "guides/upload",
+        "guides/pipeline",
+        "guides/datasets",
+        "guides/pii-privacy",
+        "guides/quality-scores",
+        "guides/webhooks"
+      ]
+    },
+    {
+      "group": "Python SDK",
+      "pages": [
+        "sdk/python/installation",
+        "sdk/python/quickstart",
+        "sdk/python/upload",
+        "sdk/python/jobs",
+        "sdk/python/datasets",
+        "sdk/python/reference"
+      ]
+    },
+    {
+      "group": "TypeScript SDK",
+      "pages": [
+        "sdk/typescript/installation",
+        "sdk/typescript/quickstart",
+        "sdk/typescript/upload",
+        "sdk/typescript/jobs",
+        "sdk/typescript/datasets",
+        "sdk/typescript/reference"
+      ]
+    },
+    {
+      "group": "Open Source (flexorch-audit)",
+      "pages": [
+        "open-source/overview",
+        "open-source/installation",
+        "open-source/pii-detection",
+        "open-source/masking",
+        "open-source/quality",
+        "open-source/compliance-report",
+        "open-source/redact-for-llm",
+        "open-source/langchain",
+        "open-source/llamaindex"
+      ]
+    },
+    {
+      "group": "Connectors",
+      "pages": [
+        "connectors/overview",
+        "connectors/amazon-s3",
+        "connectors/google-cloud-storage",
+        "connectors/azure-blob"
+      ]
+    },
+    {
+      "group": "Scheduler",
+      "pages": [
+        "scheduler/overview",
+        "scheduler/create-schedule",
+        "scheduler/sync-logs",
+        "scheduler/plan-limits"
+      ]
+    },
+    {
+      "group": "Team",
+      "pages": [
+        "team/overview",
+        "team/invite-members",
+        "team/roles"
+      ]
+    },
+    {
+      "group": "Compliance",
+      "pages": [
+        "compliance/overview",
+        "compliance/gdpr-article-30",
+        "compliance/kvkk",
+        "compliance/nis2-audit-export",
+        "compliance/eidas"
+      ]
+    },
+    {
+      "group": "Advanced",
+      "pages": [
+        "advanced/byo-llm",
+        "advanced/fine-tuning"
+      ]
+    },
+    {
+      "group": "API Reference",
+      "pages": ["api-reference/introduction"]
+    }
+  ],
+  "openapi": "https://api.flexorch.com/openapi.json",
+  "footerSocials": {
+    "github": "https://github.com/flexorch"
+  },
+  "feedback": {
+    "thumbsRating": true,
+    "suggestEdit": true,
+    "raiseIssue": true
+  }
+}

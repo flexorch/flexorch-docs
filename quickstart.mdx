@@ -1,0 +1,148 @@
+---
+title: Quickstart
+description: Process your first document and export a dataset in under 5 minutes.
+---
+
+## Prerequisites
+
+- A FlexOrch account ([sign up free](https://app.flexorch.com/signup))
+- An API key — generate one under **Settings → API Keys**
+
+---
+
+## Option 1 — Python SDK
+
+<Steps>
+  <Step title="Install the SDK">
+    ```bash
+    pip install flexorch-sdk
+    ```
+  </Step>
+  <Step title="Upload a document">
+    ```python
+    from flexorch_sdk import FlexOrch
+
+    client = FlexOrch(api_key="dfx_your_key_here")
+
+    job = client.jobs.upload("invoice.pdf")
+    print(job.id)  # job_abc123
+    ```
+  </Step>
+  <Step title="Wait for processing">
+    ```python
+    result = job.wait_until_done(timeout=120)
+
+    print(result.status)         # "completed"
+    print(result.quality_grade)  # "A"
+    print(result.pii_count)      # 3
+    print(result.detected_language)  # "tr"
+    ```
+  </Step>
+  <Step title="Build a dataset and export">
+    ```python
+    dataset = client.datasets.build(job_ids=[job.id])
+
+    # Export as JSONL for fine-tuning
+    client.datasets.export(dataset.id, format="jsonl", path="./output.jsonl")
+
+    # Or export as Parquet for analytics
+    client.datasets.export(dataset.id, format="parquet", path="./output.parquet")
+    ```
+  </Step>
+</Steps>
+
+---
+
+## Option 2 — TypeScript SDK
+
+<Steps>
+  <Step title="Install the SDK">
+    ```bash
+    npm install flexorch-sdk
+    ```
+  </Step>
+  <Step title="Upload and wait">
+    ```typescript
+    import { FlexOrch } from 'flexorch-sdk';
+
+    const client = new FlexOrch({ apiKey: 'dfx_your_key_here' });
+
+    const job = await client.jobs.upload('invoice.pdf');
+    const result = await job.waitUntilDone({ timeout: 120_000 });
+
+    console.log(result.qualityGrade);  // "A"
+    console.log(result.piiCount);      // 3
+    ```
+  </Step>
+  <Step title="Export">
+    ```typescript
+    const dataset = await client.datasets.build({ jobIds: [job.id] });
+    await client.datasets.export(dataset.id, { format: 'jsonl', path: './output.jsonl' });
+    ```
+  </Step>
+</Steps>
+
+---
+
+## Option 3 — REST API (cURL)
+
+<Steps>
+  <Step title="Upload a document">
+    ```bash
+    curl -X POST https://api.flexorch.com/v1/data-process/async \
+      -H "X-API-KEY: dfx_your_key_here" \
+      -F "files=@invoice.pdf"
+    ```
+
+    Response:
+    ```json
+    {
+      "data": {
+        "job_ids": ["job_abc123"],
+        "status": "queued"
+      }
+    }
+    ```
+  </Step>
+  <Step title="Poll for completion">
+    ```bash
+    curl https://api.flexorch.com/v1/jobs/job_abc123 \
+      -H "X-API-KEY: dfx_your_key_here"
+    ```
+
+    Completed response includes `quality.grade`, `pii_findings_count`, `detected_language`, and extracted fields.
+  </Step>
+  <Step title="Build and export a dataset">
+    ```bash
+    # Build
+    curl -X POST https://api.flexorch.com/v1/datasets \
+      -H "X-API-KEY: dfx_your_key_here" \
+      -H "Content-Type: application/json" \
+      -d '{"name": "my-dataset", "execution_ids": ["exec_xyz"]}'
+
+    # Export (returns a file download)
+    curl https://api.flexorch.com/v1/datasets/{id}/export?format=jsonl \
+      -H "X-API-KEY: dfx_your_key_here" \
+      -o output.jsonl
+    ```
+  </Step>
+</Steps>
+
+---
+
+## What's next?
+
+<CardGroup cols={2}>
+  <Card title="Supported file types" icon="file" href="/guides/upload">
+    PDF, DOCX, XLSX, HTML, XML e-invoices, EML, images — full list.
+  </Card>
+  <Card title="PII detection" icon="shield" href="/guides/pii-privacy">
+    46 types across TR, EU, and US — TCKN, IBAN, email, phone, passport, and more.
+  </Card>
+  <Card title="Export formats" icon="download" href="/guides/datasets">
+    JSONL, CSV, Parquet, Markdown, XML, XLSX, HuggingFace Arrow.
+  </Card>
+  <Card title="Automate with connectors" icon="link" href="/connectors/overview">
+    Connect an S3 bucket and process documents automatically.
+  </Card>
+</CardGroup>

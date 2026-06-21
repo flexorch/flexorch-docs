@@ -1,0 +1,28 @@
+---
+title: Quickstart
+description: Process your first document with the Python SDK.
+---
+
+See the [main Quickstart](/quickstart) for a complete example using the Python SDK.
+
+## Full example
+
+```python
+import os
+from flexorch_sdk import FlexOrch
+
+client = FlexOrch(api_key=os.environ["FLEXORCH_API_KEY"])
+
+# Upload
+job = client.jobs.upload("invoice.pdf")
+
+# Wait for completion
+result = job.wait_until_done(timeout=120)
+print(result.status)          # "completed"
+print(result.quality_grade)   # "A"
+print(result.pii_count)       # 3
+
+# Build and export
+dataset = client.datasets.build(job_ids=[job.id])
+client.datasets.export(dataset.id, format="jsonl", path="./output.jsonl")
+```

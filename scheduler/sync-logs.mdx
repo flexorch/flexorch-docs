@@ -1,0 +1,22 @@
+---
+title: Sync Logs
+description: View sync history and debug sync failures.
+---
+
+## List sync logs
+
+```bash
+curl "https://api.flexorch.com/v1/connectors/{connector_id}/schedules/{schedule_id}/logs" \
+  -H "X-API-KEY: dfx_your_key_here"
+```
+
+Response includes:
+
+| Field | Description |
+|-------|-------------|
+| `started_at` | Sync start time |
+| `completed_at` | Sync completion time |
+| `files_found` | Number of files discovered |
+| `files_processed` | Number of files successfully queued |
+| `status` | `success` or `failed` |
+| `error` | Error message if `status` is `failed` |

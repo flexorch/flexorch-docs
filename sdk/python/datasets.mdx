@@ -1,0 +1,34 @@
+---
+title: Datasets
+description: Build and export datasets using the Python SDK.
+---
+
+## Build a dataset
+
+```python
+dataset = client.datasets.build(
+    name="q1-invoices",
+    job_ids=["job_001", "job_002", "job_003"]
+)
+```
+
+## Export
+
+```python
+# JSONL for fine-tuning
+client.datasets.export(dataset.id, format="jsonl", path="./output.jsonl")
+
+# Parquet for analytics
+client.datasets.export(dataset.id, format="parquet", path="./output.parquet")
+
+# Markdown for RAG
+client.datasets.export(dataset.id, format="markdown", path="./output.md")
+```
+
+## Profile
+
+```python
+profile = client.datasets.profile(dataset.id)
+print(profile.quality_distribution)  # {"A": 12, "B": 5, "C": 1}
+print(profile.pii_type_summary)
+```

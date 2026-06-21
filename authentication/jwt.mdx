@@ -1,0 +1,79 @@
+---
+title: JWT Authentication
+description: Authenticate using email and password with JWT tokens.
+---
+
+## Overview
+
+In addition to API keys, FlexOrch supports JWT-based authentication for browser and user-facing flows. This is used by the platform UI (`app.flexorch.com`) and is available for integrations that need user-level auth.
+
+---
+
+## Sign up
+
+```bash
+curl -X POST https://api.flexorch.com/v1/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email": "you@company.com", "password": "your_password"}'
+```
+
+After signup, a verification email is sent. The account must be verified before login.
+
+---
+
+## Log in
+
+```bash
+curl -X POST https://api.flexorch.com/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "you@company.com", "password": "your_password"}'
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "access_token": "eyJ...",
+    "refresh_token": "eyJ...",
+    "token_type": "bearer",
+    "expires_in": 3600
+  }
+}
+```
+
+---
+
+## Using a JWT token
+
+Pass the access token as a Bearer header:
+
+```bash
+curl https://api.flexorch.com/v1/usage \
+  -H "Authorization: Bearer eyJ..."
+```
+
+---
+
+## Refreshing a token
+
+Access tokens expire after 1 hour. Use the refresh token to get a new one:
+
+```bash
+curl -X POST https://api.flexorch.com/v1/auth/refresh \
+  -H "Content-Type: application/json" \
+  -d '{"refresh_token": "eyJ..."}'
+```
+
+---
+
+## Choosing between API key and JWT
+
+| Use case | Recommended |
+|----------|-------------|
+| Server-to-server integrations | API key |
+| CI/CD pipelines | API key |
+| Browser-based apps | JWT |
+| Platform UI | JWT (handled automatically) |
+
+For most integrations, **API keys are simpler** — see [API Keys](/authentication/api-keys).

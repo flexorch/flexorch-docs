@@ -1,0 +1,105 @@
+---
+title: redact_for_llm
+description: One-liner PII removal before sending text to an LLM.
+---
+
+## Overview
+
+`redact_for_llm()` combines detection and masking into a single call optimized for LLM input preparation.
+
+<CodeGroup>
+```python Python
+from flexorch_audit import redact_for_llm
+
+text = """
+From: maria.garcia@company.es
+Subject: Invoice INV-2024-0042
+
+Please process the payment of €8,500 to IBAN ES91 2100 0418 4502 0005 1332.
+"""
+
+clean_text, summary = redact_for_llm(text)
+
+print(clean_text)
+# From: [MASKED_EMAIL]
+# Subject: Invoice INV-2024-0042
+#
+# Please process the payment of €8,500 to IBAN [MASKED_IBAN_ES].
+
+print(summary)
+# {"count": 2, "types": ["email", "iban_es"]}
+```
+
+```javascript JavaScript
+import { redactForLlm } from '@flexorch/audit';
+
+const { text: cleanText, summary } = await redactForLlm(text);
+
+console.log(cleanText);
+// From: [MASKED_EMAIL]
+// ...
+
+console.log(summary);
+// { count: 2, types: ['email', 'iban_es'] }
+```
+</CodeGroup>
+
+---
+
+## With locale filtering
+
+<CodeGroup>
+```python Python
+# Only detect Turkish and universal types
+clean_text, summary = redact_for_llm(text, locales=["universal", "tr"])
+```
+
+```javascript JavaScript
+const { text: cleanText, summary } = await redactForLlm(text, {
+  locales: ['universal', 'tr']
+});
+```
+</CodeGroup>
+
+---
+
+## Token estimation
+
+After redacting, estimate token count before sending to the LLM:
+
+<CodeGroup>
+```python Python
+from flexorch_audit import redact_for_llm, estimate_tokens
+
+clean_text, _ = redact_for_llm(text)
+tokens = estimate_tokens(clean_text)
+print(f"{tokens} tokens")
+```
+
+```javascript JavaScript
+import { redactForLlm, estimateTokens } from '@flexorch/audit';
+
+const { text: cleanText } = await redactForLlm(text);
+const tokens = estimateTokens(cleanText);
+console.log(`${tokens} tokens`);
+```
+</CodeGroup>
+
+---
+
+## LangChain integration
+
+Use `redact_for_llm()` as a pre-processing step in a LangChain chain:
+
+```python
+from langchain_core.runnables import RunnableLambda
+from flexorch_audit import redact_for_llm
+
+def safe_input(text: str) -> str:
+    clean, _ = redact_for_llm(text)
+    return clean
+
+chain = RunnableLambda(safe_input) | your_llm_chain
+```
+
+Or use the ready-made [AuditedLoader](/open-source/langchain) for document loading.

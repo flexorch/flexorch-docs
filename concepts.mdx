@@ -1,0 +1,93 @@
+---
+title: Core Concepts
+description: Key terms and concepts you'll encounter when using FlexOrch.
+---
+
+## Document
+
+A document is any file you upload for processing. FlexOrch accepts PDF, DOCX, TXT, XLSX, HTML, XML, EML, MSG, JPG, PNG, TIFF, and more.
+
+Each uploaded document receives a unique `document_id` and is stored for the duration defined by your plan's retention policy.
+
+---
+
+## Job
+
+A **job** represents one processing run for a single document. When you upload a file, FlexOrch creates a job and runs the pipeline asynchronously.
+
+Job states:
+
+| State | Meaning |
+|-------|---------|
+| `queued` | Waiting to be picked up |
+| `running` | Pipeline in progress |
+| `completed` | Processing finished successfully |
+| `failed` | Processing failed — see `failure_reason` |
+
+---
+
+## Pipeline
+
+The pipeline is the sequence of steps FlexOrch runs on every document:
+
+1. **Extract** — Parse raw text from the file (OCR for images/scanned PDFs)
+2. **Classify** — Detect document type (invoice, payroll, etc.)
+3. **Extract fields** — Pull structured data using deterministic patterns, falling back to LLM for complex fields
+4. **Detect PII** — Identify personal and sensitive data across 46 types
+5. **Quality score** — Compute a score (0–100) and grade (A–D)
+6. **Deliver** — Write results to the pipeline execution record
+
+---
+
+## Execution
+
+A **pipeline execution** is the record of one pipeline run: extracted fields, detected language, quality score, PII summary, and masked text (if PII was found).
+
+---
+
+## Dataset
+
+A **dataset** is a collection of pipeline executions you explicitly build and export. Datasets contain cleaned, structured records from one or more processed documents.
+
+Building a dataset is a separate step — you choose which completed jobs to include.
+
+---
+
+## Quality Grade
+
+Every document receives a quality grade:
+
+| Grade | Score | Meaning |
+|-------|-------|---------|
+| **A** | 85–100 | High quality — ready for production |
+| **B** | 65–84 | Good quality — minor gaps |
+| **C** | 45–64 | Moderate — some fields missing or noisy |
+| **D** | 0–44 | Low quality — significant extraction issues |
+
+---
+
+## PII Type
+
+A PII type identifies the kind of personal data found (e.g., `email`, `phone_tr`, `national_id_tr`, `iban`). FlexOrch detects 46 types across Turkish, EU, and US jurisdictions.
+
+See [PII Detection](/guides/pii-privacy) for the full type catalog.
+
+---
+
+## Credit
+
+One **credit** is consumed per processed document (one job = one credit). Dataset builds and exports do not consume credits.
+
+Credit usage is tracked per billing period. The [Usage endpoint](/api-reference/usage) shows your current balance.
+
+---
+
+## Connector
+
+A **connector** is a connection to external storage (Amazon S3, Google Cloud Storage, Azure Blob). Documents can be ingested directly from a bucket without manual upload.
+
+---
+
+## Workspace
+
+Each tenant has a single workspace that scopes all their documents, jobs, datasets, and connectors. The workspace identifier is derived from your API key.

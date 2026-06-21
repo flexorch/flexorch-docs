@@ -1,0 +1,72 @@
+---
+title: Introduction
+description: FlexOrch turns unstructured documents into LLM-ready datasets — automatically.
+---
+
+## What is FlexOrch?
+
+FlexOrch is a document intelligence pipeline that converts unstructured files — PDFs, Word documents, spreadsheets, emails, XML invoices — into clean, structured datasets ready for LLM fine-tuning, RAG, or analytics.
+
+**The core flow:**
+
+```
+Upload document → Classify → Extract structured fields
+→ Detect & mask PII → Score quality → Export dataset
+```
+
+Each step is automated. You get a structured dataset with a quality grade, PII summary, and your choice of export format.
+
+---
+
+## Key capabilities
+
+<CardGroup cols={2}>
+  <Card title="Document types" icon="file-lines">
+    PDF, DOCX, TXT, XLSX, HTML, XML, EML, JPG/PNG — 15+ formats processed automatically.
+  </Card>
+  <Card title="Structured extraction" icon="table">
+    Invoice, expense report, purchase order, payroll, bank statement, sales proposal, budget, delivery note, tax declaration — 9 schema types.
+  </Card>
+  <Card title="PII detection & masking" icon="shield">
+    46 PII types across TR, EU, and US jurisdictions. KVKK and GDPR compliant masking with full audit trail.
+  </Card>
+  <Card title="Quality scoring" icon="star">
+    Every document gets a quality score (0–100) and grade (A–D) based on extraction completeness, noise ratio, and OCR confidence.
+  </Card>
+  <Card title="Export formats" icon="download">
+    JSONL (fine-tuning), CSV, Parquet, Markdown (RAG), XML, XLSX, HuggingFace Arrow — 9 formats.
+  </Card>
+  <Card title="Open source audit" icon="code">
+    `flexorch-audit` — zero-dependency PII detection and quality scoring library for Python and JavaScript.
+  </Card>
+</CardGroup>
+
+---
+
+## Plans
+
+| Plan | Credits | Use case |
+|------|---------|----------|
+| **Trial** | 1,200 / 30 days | Evaluate the platform, no credit card required |
+| **Starter** | 1,200 / month | Small teams, regular document processing |
+| **Pro** | 6,000 / month | Higher volume, BYO LLM API key, scheduled sync |
+| **Enterprise** | Custom | Team management, compliance reporting, SLA |
+
+---
+
+## Where to start
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="bolt" href="/quickstart">
+    Process your first document in 5 minutes.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Full endpoint reference, auto-generated from the OpenAPI spec.
+  </Card>
+  <Card title="Open Source" icon="github" href="/open-source/overview">
+    Use `flexorch-audit` independently for PII detection and quality scoring.
+  </Card>
+  <Card title="Python SDK" icon="python" href="/sdk/python/quickstart">
+    Install `flexorch-sdk` and start processing in a few lines.
+  </Card>
+</CardGroup>

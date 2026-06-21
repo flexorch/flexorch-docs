@@ -1,0 +1,101 @@
+---
+title: API Keys
+description: Generate, use, and rotate your FlexOrch API keys.
+---
+
+## Overview
+
+FlexOrch uses API keys for authentication. Every request must include a valid key.
+
+API keys follow the format:
+
+```
+dfx_<random_string>
+```
+
+Keys are tied to your account. All requests made with a key are scoped to your workspace.
+
+---
+
+## Generating a key
+
+1. Sign in to [app.flexorch.com](https://app.flexorch.com)
+2. Go to **Settings → API Keys**
+3. Click **Generate New Key**
+4. Copy the key immediately — it is shown only once
+
+You can generate multiple keys (e.g., one per environment or integration).
+
+---
+
+## Using a key
+
+Pass the key in the `X-API-KEY` header:
+
+```bash
+curl https://api.flexorch.com/v1/usage \
+  -H "X-API-KEY: dfx_your_key_here"
+```
+
+<Warning>
+  Never expose API keys in client-side code, public repositories, or logs.
+</Warning>
+
+---
+
+## Revoking a key
+
+1. Go to **Settings → API Keys**
+2. Click **Revoke** next to the key you want to remove
+
+Revoked keys stop working immediately.
+
+---
+
+## Security best practices
+
+- Store keys in environment variables, never in source code
+- Use separate keys per environment (development, staging, production)
+- Rotate keys periodically — revoke old ones after issuing new ones
+- Set up a `.env` file and add it to `.gitignore`
+
+```bash
+# .env
+FLEXORCH_API_KEY=dfx_your_key_here
+```
+
+```python
+import os
+from flexorch_sdk import FlexOrch
+
+client = FlexOrch(api_key=os.environ["FLEXORCH_API_KEY"])
+```
+
+---
+
+## Rate limits
+
+API key requests are subject to plan-based rate limits. If you exceed your limit, the API returns `429 Too Many Requests`.
+
+Check your current usage and limits:
+
+```bash
+curl https://api.flexorch.com/v1/usage/rate-limits \
+  -H "X-API-KEY: dfx_your_key_here"
+```
+
+```json
+{
+  "data": {
+    "plan": "starter",
+    "rate_limit": {
+      "rpm": 60,
+      "used": 12,
+      "remaining": 48,
+      "reset_in_seconds": 34
+    }
+  }
+}
+```
+
+On `429`, wait for `reset_in_seconds` before retrying. The SDK handles this automatically with exponential backoff.

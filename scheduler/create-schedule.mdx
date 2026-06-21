@@ -1,0 +1,48 @@
+---
+title: Create a Schedule
+description: Set up a cron schedule for automatic connector sync.
+---
+
+## Cron syntax
+
+FlexOrch uses standard 5-field cron expressions (UTC timezone):
+
+```
+┌───────── minute (0–59)
+│ ┌─────── hour (0–23)
+│ │ ┌───── day of month (1–31)
+│ │ │ ┌─── month (1–12)
+│ │ │ │ ┌─ day of week (0–7, 0 and 7 = Sunday)
+│ │ │ │ │
+* * * * *
+```
+
+Common patterns:
+
+| Schedule | Cron |
+|----------|------|
+| Every day at 6am UTC | `0 6 * * *` |
+| Every Monday at 8am UTC | `0 8 * * 1` |
+| Every 6 hours | `0 */6 * * *` |
+
+## Create
+
+```bash
+curl -X POST https://api.flexorch.com/v1/connectors/{connector_id}/schedules \
+  -H "X-API-KEY: dfx_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "cron": "0 6 * * *",
+    "prefix": "documents/incoming/",
+    "name": "Daily document sync"
+  }'
+```
+
+## Manual trigger
+
+Trigger a sync immediately without waiting for the schedule:
+
+```bash
+curl -X POST https://api.flexorch.com/v1/connectors/{connector_id}/schedules/{schedule_id}/trigger \
+  -H "X-API-KEY: dfx_your_key_here"
+```

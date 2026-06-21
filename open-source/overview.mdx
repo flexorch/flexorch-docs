@@ -1,0 +1,88 @@
+---
+title: flexorch-audit
+description: Zero-dependency PII detection and document quality scoring for Python and JavaScript.
+---
+
+## Overview
+
+`flexorch-audit` is an open source library for PII detection, text masking, and document quality scoring. It runs entirely locally — no API calls, no account required.
+
+<CardGroup cols={2}>
+  <Card title="Python" icon="python" href="/open-source/installation">
+    `pip install flexorch-audit`
+  </Card>
+  <Card title="JavaScript / TypeScript" icon="js" href="/open-source/installation">
+    `npm install @flexorch/audit`
+  </Card>
+</CardGroup>
+
+---
+
+## Features
+
+- **PII detection** — 46 types across TR, EU, and US jurisdictions
+- **Text masking** — 4 strategies: redact, replace, token, hash
+- **Quality metrics** — grade (A–D), score, noise ratio, language detection
+- **Compliance summary** — KVKK / GDPR risk categories
+- **LLM preparation** — `redact_for_llm()` one-liner, token estimation
+- **LangChain & LlamaIndex** — drop-in loaders with quality filtering
+- **Zero dependencies** — pure Python / pure JavaScript, no heavy ML models
+
+---
+
+## Quick example
+
+<CodeGroup>
+```python Python
+from flexorch_audit import audit
+
+result = audit("""
+  Invoice from Acme Ltd.
+  Contact: john.doe@acme.com
+  IBAN: TR33 0006 1005 1978 6457 8413 26
+  Amount: €12,500
+""")
+
+print(result["quality_grade"])        # "A"
+print(result["pii_summary"]["count"]) # 2
+print(result["detected_language"])    # "en"
+```
+
+```javascript JavaScript
+import { audit } from '@flexorch/audit';
+
+const result = await audit(`
+  Invoice from Acme Ltd.
+  Contact: john.doe@acme.com
+  IBAN: TR33 0006 1005 1978 6457 8413 26
+  Amount: €12,500
+`);
+
+console.log(result.qualityGrade);         // "A"
+console.log(result.piiSummary.count);     // 2
+console.log(result.detectedLanguage);     // "en"
+```
+</CodeGroup>
+
+---
+
+## Relationship to FlexOrch platform
+
+`flexorch-audit` contains the core detection logic used by the FlexOrch platform. The platform adds:
+
+- Structured extraction for 9 document types
+- Managed pipeline (async jobs, job history)
+- Dataset building and export
+- Cloud connectors (S3, GCS, Azure)
+- Compliance reports and audit trail
+- Team management
+
+Use `flexorch-audit` if you want detection in your own pipeline. Use the FlexOrch platform if you want the full managed workflow.
+
+---
+
+## Links
+
+- [PyPI](https://pypi.org/project/flexorch-audit)
+- [npm](https://www.npmjs.com/package/@flexorch/audit)
+- [GitHub](https://github.com/flexorch/flexorch-audit)

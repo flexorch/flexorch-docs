@@ -1,0 +1,77 @@
+---
+title: LangChain Integration
+description: Use AuditedLoader to load documents with automatic PII detection and quality filtering.
+---
+
+## Overview
+
+`flexorch-audit` ships a LangChain-compatible document loader that audits each document before it enters your chain.
+
+```bash
+pip install flexorch-audit langchain-community
+```
+
+---
+
+## AuditedLoader
+
+```python
+from flexorch_audit.integrations.langchain import AuditedLoader
+
+loader = AuditedLoader(
+    file_paths=["contracts/agreement.pdf", "invoices/inv_001.pdf"],
+    min_grade="B",          # Skip documents graded C or D
+    mask_pii=True,          # Replace PII before loading
+    locales=["universal", "tr", "de"],
+)
+
+docs = loader.load()
+
+for doc in docs:
+    print(doc.metadata["quality_grade"])      # "A"
+    print(doc.metadata["pii_findings_count"]) # 2
+    print(doc.page_content[:200])             # PII already masked
+```
+
+---
+
+## Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `file_paths` | list[str] | required | Paths to documents |
+| `min_grade` | str | `"D"` | Minimum grade to include (`"A"`, `"B"`, `"C"`, `"D"`) |
+| `mask_pii` | bool | `True` | Replace PII with `[MASKED_...]` placeholders |
+| `locales` | list[str] | all | Restrict PII detection to specific jurisdictions |
+
+---
+
+## In a RAG pipeline
+
+```python
+from langchain_openai import OpenAIEmbeddings
+from langchain_community.vectorstores import FAISS
+from flexorch_audit.integrations.langchain import AuditedLoader
+
+loader = AuditedLoader(file_paths=["docs/"], min_grade="B", mask_pii=True)
+docs = loader.load()
+
+embeddings = OpenAIEmbeddings()
+vectorstore = FAISS.from_documents(docs, embeddings)
+
+retriever = vectorstore.as_retriever()
+```
+
+Documents with grades below `min_grade` are silently skipped. Check `loader.skipped` for a list of excluded files and their grades.
+
+---
+
+## As a pre-processing step
+
+```python
+from langchain_core.runnables import RunnableLambda
+from flexorch_audit import redact_for_llm
+
+# Use redact_for_llm() inline without a file loader
+safe_chain = RunnableLambda(lambda text: redact_for_llm(text)[0]) | your_chain
+```
