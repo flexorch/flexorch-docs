@@ -1,53 +1,153 @@
 ---
 title: SDK Reference
-description: Complete Python SDK API surface.
+description: Complete Python SDK API surface — all classes and methods.
 ---
 
-## FlexOrch client
+## FlexOrch
 
 ```python
 from flexorch_sdk import FlexOrch
 
-client = FlexOrch(
-    api_key="dfx_...",           # Required
-    base_url="https://api.flexorch.com",  # Optional override
-    timeout=30,                   # Request timeout in seconds
-)
+client = FlexOrch(api_key_or_options=None)
 ```
+
+**Constructor:**
+
+| Argument | Type | Description |
+|----------|------|-------------|
+| `api_key` | `str` | API key — falls back to `FLEXORCH_API_KEY` env |
+| `base_url` | `str` | Override API base URL |
+| `timeout` | `int` | Request timeout in seconds (default: `30`) |
+| `max_retries` | `int` | Retry count for transient errors (default: `3`) |
+
+---
+
+## Top-level methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `client.search(query, top_k?, filters?)` | `list[dict]` | Semantic search across indexed datasets |
+
+**search options:**
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `top_k` | `int` | `5` | Number of results to return |
+| `filters` | `dict` | — | Filter by `quality_grade`, `language`, `dataset_id` |
+
+---
 
 ## client.jobs
 
-| Method | Description |
-|--------|-------------|
-| `upload(path)` | Upload a file and return a Job |
-| `upload_many(paths)` | Upload multiple files |
-| `upload_bytes(data, filename)` | Upload from bytes |
-| `upload_from_connector(connector_id, keys)` | Ingest from S3/GCS/Azure |
-| `get(job_id)` | Get a single job |
-| `list(page, page_size)` | List jobs with pagination |
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `jobs.upload(path, locale?)` | `Job` | Upload and process a single file |
+| `jobs.upload_many(paths, locale?)` | `list[Job]` | Process multiple files sequentially |
+| `jobs.upload_bytes(data, filename, locale?)` | `Job` | Upload from bytes |
+| `jobs.upload_from_connector(connector_id, keys, locale?)` | `list[Job]` | Ingest files from a connector |
+| `jobs.get(job_id)` | `Job` | Fetch a job by ID |
+| `jobs.list(page?, page_size?)` | `PaginatedResult[Job]` | List jobs with pagination |
+
+**locale:** language hint (`"tr"`, `"de"`, etc.) or `"und"` for auto-detect (default)
+
+---
+
+## Job
+
+| Field / Method | Type | Description |
+|----------------|------|-------------|
+| `id` | `str` | Job ID |
+| `status` | `str` | `"queued"` \| `"running"` \| `"completed"` \| `"failed"` |
+| `quality_grade` | `str \| None` | `"A"`–`"D"` |
+| `quality_score` | `int \| None` | 0–100 |
+| `document_id` | `str \| None` | Document ID |
+| `has_dataset` | `bool` | Dataset has been built |
+| `failure_reason` | `str \| None` | Set on failure |
+| `job.wait_until_done(timeout?, poll_interval?)` | `Job` | Poll until completed or failed |
+| `job.dataset()` | `Dataset \| None` | Fetch associated dataset |
+| `job.feedback(rating, issue?)` | `None` | Submit quality feedback |
+
+**wait_until_done options:** `timeout` (seconds, default 300), `poll_interval` (seconds, default 2)
+
+---
 
 ## client.datasets
 
-| Method | Description |
-|--------|-------------|
-| `build(name, job_ids)` | Build a dataset |
-| `get(dataset_id)` | Get a dataset |
-| `list(page, page_size)` | List datasets |
-| `export(dataset_id, format, path)` | Export to file |
-| `profile(dataset_id)` | Get quality and PII profile |
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `datasets.build(name, job_ids)` | `Dataset` | Build a dataset from jobs |
+| `datasets.get(dataset_id)` | `Dataset` | Fetch a dataset by ID |
+| `datasets.list(page?, page_size?)` | `PaginatedResult[Dataset]` | List datasets |
+| `datasets.export(dataset_id, format, path)` | `None` | Export to file |
+| `datasets.export_to_s3(dataset_id, connector_id, format, prefix?)` | `dict` | Push export to a connector |
+| `datasets.index(dataset_id)` | `dict` | Start semantic indexing |
+| `datasets.index_status(dataset_id)` | `dict` | Check indexing progress |
+| `datasets.profile(dataset_id)` | `dict` | Quality and PII profile |
+
+---
+
+## Dataset
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `str` | Dataset ID |
+| `name` | `str` | Name |
+| `slug` | `str` | URL-safe slug |
+| `status` | `str` | `"building"` \| `"ready"` \| `"failed"` |
+| `row_count` | `int` | Number of records |
+| `created_at` | `str` | ISO 8601 |
+| `available_formats` | `list[str]` | Generated export formats |
+
+**ExportFormat:** `"json"` | `"jsonl"` | `"csv"` | `"parquet"` | `"md"` | `"xml"` | `"xlsx"` | `"rag"`
+
+---
 
 ## client.connectors
 
-| Method | Description |
-|--------|-------------|
-| `create(type, name, config)` | Create a connector |
-| `list()` | List connectors |
-| `delete(connector_id)` | Delete a connector |
-| `test(connector_id)` | Test connectivity |
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `connectors.create(name, type, config)` | `dict` | Create a connector |
+| `connectors.list()` | `list[dict]` | List all connectors |
+| `connectors.get(connector_id)` | `dict` | Get a single connector |
+| `connectors.delete(connector_id)` | `None` | Delete a connector |
+| `connectors.test(connector_id)` | `dict` | Test connectivity |
+
+**ConnectorType:** `"s3"` | `"gcs"` | `"azure_blob"`
+
+---
 
 ## client.usage
 
-| Method | Description |
-|--------|-------------|
-| `get()` | Current credit balance and plan |
-| `rate_limits()` | RPM limits and remaining |
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `usage.get()` | `dict` | Current credit balance and plan |
+| `usage.rate_limits()` | `dict` | RPM limits and remaining |
+
+---
+
+## client.webhooks
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `webhooks.list()` | `list[dict]` | List registered webhooks |
+| `webhooks.create(url, events, secret?)` | `dict` | Register a webhook |
+| `webhooks.delete(webhook_id)` | `None` | Remove a webhook |
+
+**WebhookEvent:** `"job.completed"` | `"job.failed"` | `"dataset.ready"`
+
+---
+
+## Errors
+
+| Class | Raised when |
+|-------|-------------|
+| `AuthError` | Invalid or revoked API key (401) |
+| `QuotaError` | Credit limit exceeded (402/429) |
+| `RateLimitError` | RPM limit exceeded (429) |
+| `NotFoundError` | Resource not found (404) |
+| `ValidationError` | Bad request (400/422) |
+| `ServerError` | Server-side error (5xx) |
+| `JobFailedError` | `job.wait_until_done()` — job ended with status `"failed"` |
+| `JobTimeoutError` | `job.wait_until_done()` — timeout elapsed before completion |
+
+All errors extend `FlexOrchError`.

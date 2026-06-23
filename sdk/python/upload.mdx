@@ -1,19 +1,51 @@
 ---
 title: Upload
-description: Upload documents using the Python SDK.
+description: Upload documents for processing using the Python SDK.
 ---
 
 ## Single file
 
+Use `client.jobs.upload()` — the standard entry point for uploading and queuing a single document:
+
 ```python
+from flexorch_sdk import FlexOrch
+
+client = FlexOrch()
+
 job = client.jobs.upload("invoice.pdf")
+print(job.id)     # "job_abc123"
+print(job.status) # "queued"
 ```
+
+The returned `Job` object can be awaited with `job.wait_until_done()`.
+
+---
 
 ## Multiple files
 
 ```python
-jobs = client.jobs.upload_many(["invoice.pdf", "payroll.xlsx", "contract.docx"])
+jobs = client.jobs.upload_many([
+    "invoices/jan.pdf",
+    "invoices/feb.pdf",
+    "payroll/q1.xlsx",
+])
+
+print(len(jobs))                    # 3
+print([j.id for j in jobs])        # ["job_001", "job_002", "job_003"]
 ```
+
+Each file gets its own `Job`. Files are processed sequentially.
+
+---
+
+## With options
+
+```python
+job = client.jobs.upload("document.pdf", locale="tr")
+# locale hint: 'und' = auto-detect (default), 'tr', 'de', 'fr', etc.
+```
+
+---
 
 ## From bytes
 
@@ -22,11 +54,47 @@ with open("document.pdf", "rb") as f:
     job = client.jobs.upload_bytes(f.read(), filename="document.pdf")
 ```
 
-## From a connector
+---
+
+## From a connector (S3 / GCS / Azure)
+
+If you have a connector configured, process files directly from cloud storage:
 
 ```python
-job = client.jobs.upload_from_connector(
+jobs = client.jobs.upload_from_connector(
     connector_id=1,
-    keys=["documents/invoice_2024.pdf"]
+    keys=[
+        "documents/invoice_2024.pdf",
+        "documents/payroll_q1.xlsx",
+    ],
 )
+
+for job in jobs:
+    done = job.wait_until_done()
+    print(done.quality_grade)
 ```
+
+See [Connectors](/connectors/overview) for setup.
+
+---
+
+## Polling manually
+
+If you need fine-grained control over polling:
+
+```python
+import time
+
+job = client.jobs.upload("document.pdf")
+
+while job.status in ("queued", "running"):
+    time.sleep(2)
+    job = client.jobs.get(job.id)
+
+if job.status == "completed":
+    print("Grade:", job.quality_grade)
+else:
+    print("Failed:", job.failure_reason)
+```
+
+Or use `job.wait_until_done()` — it handles this automatically with configurable timeout and poll interval.

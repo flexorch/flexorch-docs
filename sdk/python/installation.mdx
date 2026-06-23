@@ -9,23 +9,47 @@ pip install flexorch-sdk
 
 Requires Python 3.10+.
 
-```python
-from flexorch_sdk import FlexOrch
+---
 
-client = FlexOrch(api_key="dfx_your_key_here")
-```
+## Setup
 
-Set your API key as an environment variable to avoid hardcoding it:
+Set your API key as an environment variable:
 
 ```bash
 export FLEXORCH_API_KEY=dfx_your_key_here
 ```
 
+The client picks it up automatically:
+
 ```python
-import os
 from flexorch_sdk import FlexOrch
 
-client = FlexOrch(api_key=os.environ["FLEXORCH_API_KEY"])
+client = FlexOrch()  # reads FLEXORCH_API_KEY from env
 ```
 
-See [Quickstart](/sdk/python/quickstart) for your first document processing example.
+Or pass it explicitly:
+
+```python
+client = FlexOrch(api_key="dfx_your_key_here")
+
+# with options
+client = FlexOrch(
+    api_key="dfx_your_key_here",
+    timeout=60,      # seconds — default 30
+    max_retries=3,   # default 3
+)
+```
+
+---
+
+## Verify
+
+```python
+from flexorch_sdk import FlexOrch
+
+client = FlexOrch()
+usage = client.usage.get()
+print(usage["plan"])               # "trial"
+print(usage["credits_used"])       # 0
+print(usage["credits_remaining"])  # 1200
+```

@@ -6,27 +6,101 @@ description: Poll, inspect, and manage processing jobs.
 ## Get a job
 
 ```python
+from flexorch_sdk import FlexOrch
+
+client = FlexOrch()
+
 job = client.jobs.get("job_abc123")
 print(job.status)         # "completed"
 print(job.quality_grade)  # "A"
+print(job.quality_score)  # 91
 ```
+
+---
 
 ## Wait for completion
 
+`job.wait_until_done()` polls until the job finishes and returns the updated `Job`:
+
 ```python
-result = job.wait_until_done(timeout=120, poll_interval=2)
+job = client.jobs.upload("document.pdf")
+done = job.wait_until_done()
+
+print(done.quality_grade)  # "A"
 ```
+
+**Options:**
+
+```python
+done = job.wait_until_done(
+    timeout=120,      # seconds before JobTimeoutError is raised (default: 300)
+    poll_interval=2,  # seconds between polls (default: 2)
+)
+```
+
+**Errors:**
+
+```python
+from flexorch_sdk import JobFailedError, JobTimeoutError
+
+try:
+    done = job.wait_until_done(timeout=60)
+except JobFailedError as e:
+    print("Failed:", e.reason)    # e.job_id also available
+except JobTimeoutError as e:
+    print("Timed out:", e.job_id)
+```
+
+---
+
+## Job fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `str` | Job identifier |
+| `status` | `str` | `"queued"` \| `"running"` \| `"completed"` \| `"failed"` |
+| `quality_grade` | `str \| None` | `"A"` – `"D"`, set when completed |
+| `quality_score` | `int \| None` | 0–100, set when completed |
+| `document_id` | `str \| None` | Associated document ID |
+| `has_dataset` | `bool` | Whether a dataset has been built from this job |
+| `failure_reason` | `str \| None` | Set when `status == "failed"` |
+
+---
 
 ## List jobs
 
 ```python
 jobs = client.jobs.list(page=1, page_size=20)
+
 for job in jobs.items:
     print(job.id, job.status, job.quality_grade)
 ```
+
+---
+
+## Get associated dataset
+
+If `job.has_dataset is True`, retrieve the built dataset:
+
+```python
+dataset = job.dataset()
+
+if dataset:
+    print(dataset.id)
+    print(dataset.row_count)
+    client.datasets.export(dataset.id, format="jsonl", path="output.jsonl")
+```
+
+Returns `None` if no dataset has been built yet.
+
+---
 
 ## Submit feedback
 
 ```python
 job.feedback(rating="negative", issue="wrong_fields")
 ```
+
+**rating:** `"positive"` | `"negative"`
+
+**issue:** `"wrong_fields"` | `"missing_data"` | `"wrong_classification"` | `"pii_not_masked"` | `"other"`

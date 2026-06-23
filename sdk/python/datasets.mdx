@@ -3,32 +3,139 @@ title: Datasets
 description: Build and export datasets using the Python SDK.
 ---
 
+## Get a dataset
+
+```python
+from flexorch_sdk import FlexOrch
+
+client = FlexOrch()
+
+dataset = client.datasets.get("ds_abc123")
+print(dataset.name)              # "q1-invoices"
+print(dataset.row_count)         # 42
+print(dataset.status)            # "ready"
+print(dataset.available_formats) # ["jsonl", "csv", "parquet"]
+```
+
+---
+
+## List datasets
+
+```python
+datasets = client.datasets.list(page=1, page_size=20)
+
+for ds in datasets.items:
+    print(ds.id, ds.name, ds.row_count)
+```
+
+---
+
 ## Build a dataset
 
 ```python
 dataset = client.datasets.build(
     name="q1-invoices",
-    job_ids=["job_001", "job_002", "job_003"]
+    job_ids=["job_001", "job_002", "job_003"],
 )
 ```
 
+---
+
 ## Export
 
+`client.datasets.export()` writes the file to disk:
+
 ```python
-# JSONL for fine-tuning
-client.datasets.export(dataset.id, format="jsonl", path="./output.jsonl")
+# JSONL for LLM fine-tuning
+client.datasets.export(dataset.id, format="jsonl", path="output.jsonl")
 
 # Parquet for analytics
-client.datasets.export(dataset.id, format="parquet", path="./output.parquet")
+client.datasets.export(dataset.id, format="parquet", path="output.parquet")
 
 # Markdown for RAG
-client.datasets.export(dataset.id, format="markdown", path="./output.md")
+client.datasets.export(dataset.id, format="md", path="output.md")
 ```
+
+**Supported formats:** `"json"` | `"jsonl"` | `"csv"` | `"parquet"` | `"md"` | `"xml"` | `"xlsx"` | `"rag"`
+
+---
+
+## Export directly to S3
+
+Push a dataset to a connected S3/GCS/Azure bucket without downloading it first:
+
+```python
+result = client.datasets.export_to_s3(
+    dataset_id=dataset.id,
+    connector_id=1,
+    format="jsonl",
+    prefix="exports/datasets/",  # optional
+)
+
+print(result["s3_key"])      # "exports/datasets/q1-invoices.jsonl"
+print(result["size_bytes"])  # 148302
+```
+
+---
+
+## Semantic indexing
+
+<Note>
+  Available on **Pro and Enterprise** plans.
+</Note>
+
+Index a dataset for semantic search:
+
+```python
+import time
+
+# Start indexing (non-blocking)
+client.datasets.index(dataset.id)
+
+# Poll status
+while True:
+    status = client.datasets.index_status(dataset.id)
+    if status["status"] != "indexing":
+        break
+    time.sleep(3)
+
+print(status["status"])        # "ready"
+print(status["total_chunks"])  # 84
+```
+
+Then search across indexed datasets:
+
+```python
+results = client.search(
+    "invoices over 10000 EUR from Germany",
+    top_k=5,
+    filters={"quality_grade": "A", "language": "de"},
+)
+
+for r in results:
+    print(r["score"], r["chunk_text"][:80])
+```
+
+---
 
 ## Profile
 
 ```python
 profile = client.datasets.profile(dataset.id)
-print(profile.quality_distribution)  # {"A": 12, "B": 5, "C": 1}
-print(profile.pii_type_summary)
+print(profile["quality_distribution"])  # {"A": 12, "B": 5, "C": 1}
+print(profile["pii_type_summary"])
 ```
+
+---
+
+## Dataset fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `str` | Dataset identifier |
+| `name` | `str` | Human-readable name |
+| `slug` | `str` | URL-safe slug |
+| `status` | `str` | `"building"` \| `"ready"` \| `"failed"` |
+| `row_count` | `int` | Number of records |
+| `created_at` | `str` | ISO 8601 timestamp |
+| `available_formats` | `list[str]` | Formats that have been generated |

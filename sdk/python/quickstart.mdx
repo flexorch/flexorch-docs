@@ -1,28 +1,89 @@
 ---
 title: Quickstart
-description: Process your first document with the Python SDK.
+description: Process your first document and export a dataset in under 5 minutes.
 ---
 
-See the [main Quickstart](/quickstart) for a complete example using the Python SDK.
+## Prerequisites
+
+- Python 3.10+
+- A FlexOrch account and API key — generate one under **Settings → API Keys**
+
+---
+
+## Install
+
+```bash
+pip install flexorch-sdk
+```
+
+---
 
 ## Full example
 
 ```python
-import os
 from flexorch_sdk import FlexOrch
 
-client = FlexOrch(api_key=os.environ["FLEXORCH_API_KEY"])
+client = FlexOrch()  # reads FLEXORCH_API_KEY from env
 
-# Upload
+# 1 — Upload and process a document
 job = client.jobs.upload("invoice.pdf")
+print(job.id)  # "job_abc123"
 
-# Wait for completion
-result = job.wait_until_done(timeout=120)
-print(result.status)          # "completed"
-print(result.quality_grade)   # "A"
-print(result.pii_count)       # 3
+# 2 — Wait for the pipeline to finish
+done = job.wait_until_done(timeout=120)
+print(done.status)         # "completed"
+print(done.quality_grade)  # "A"
 
-# Build and export
-dataset = client.datasets.build(job_ids=[job.id])
-client.datasets.export(dataset.id, format="jsonl", path="./output.jsonl")
+# 3 — Build a dataset from this job
+dataset = client.datasets.build(name="q1-invoices", job_ids=[done.id])
+
+# 4 — Export as JSONL for fine-tuning
+client.datasets.export(dataset.id, format="jsonl", path="output.jsonl")
+
+print("Done — output.jsonl written")
 ```
+
+---
+
+## Error handling
+
+```python
+from flexorch_sdk import (
+    FlexOrch,
+    JobFailedError,
+    JobTimeoutError,
+    QuotaError,
+)
+
+client = FlexOrch()
+
+try:
+    job = client.jobs.upload("document.pdf")
+    done = job.wait_until_done(timeout=120)
+    print(done.quality_grade)
+except JobFailedError as e:
+    print("Processing failed:", e.reason)
+except JobTimeoutError as e:
+    print("Timed out waiting for job:", e.job_id)
+except QuotaError:
+    print("Credit quota exceeded — upgrade your plan")
+```
+
+---
+
+## What's next?
+
+<CardGroup cols={2}>
+  <Card title="Upload" icon="upload" href="/sdk/python/upload">
+    Single file, multi-file, from S3.
+  </Card>
+  <Card title="Jobs" icon="gear" href="/sdk/python/jobs">
+    Poll, inspect, and manage processing jobs.
+  </Card>
+  <Card title="Datasets" icon="database" href="/sdk/python/datasets">
+    Build, export, and index datasets.
+  </Card>
+  <Card title="Reference" icon="book" href="/sdk/python/reference">
+    Full API surface — all classes and methods.
+  </Card>
+</CardGroup>
