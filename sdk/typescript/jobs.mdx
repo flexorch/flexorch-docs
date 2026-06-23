@@ -1,18 +1,99 @@
 ---
 title: Jobs
-description: TypeScript SDK — jobs.
+description: Poll, inspect, and manage processing jobs.
 ---
 
-<Note>
-  Content coming soon. See the [Python SDK](sdk/python/jobs) for equivalent examples — the TypeScript SDK mirrors the same interface.
-</Note>
-
-```bash
-npm install flexorch-sdk
-```
+## Get a job
 
 ```typescript
-import { FlexOrch } from 'flexorch-sdk';
+import { FlexOrchClient } from 'flexorch-sdk';
 
-const client = new FlexOrch({ apiKey: process.env.FLEXORCH_API_KEY! });
+const client = new FlexOrchClient();
+
+const job = await client.jobs.get('job_abc123');
+console.log(job.status);        // "completed"
+console.log(job.qualityGrade);  // "A"
+console.log(job.qualityScore);  // 91
 ```
+
+---
+
+## Wait for completion
+
+`job.wait()` polls until the job finishes and returns the updated `Job`:
+
+```typescript
+const job = await client.process('document.pdf');
+const done = await job.wait();
+
+console.log(done.qualityGrade); // "A"
+```
+
+**Options:**
+
+```typescript
+const done = await job.wait({
+  timeout: 120,      // seconds before JobTimeoutError is thrown (default: 300)
+  pollInterval: 2,   // seconds between polls (default: 2)
+});
+```
+
+**Errors:**
+
+```typescript
+import { JobFailedError, JobTimeoutError } from 'flexorch-sdk';
+
+try {
+  const done = await job.wait({ timeout: 60 });
+} catch (err) {
+  if (err instanceof JobFailedError) {
+    console.error('Failed:', err.reason);    // err.jobId also available
+  } else if (err instanceof JobTimeoutError) {
+    console.error('Timed out:', err.jobId);
+  }
+}
+```
+
+---
+
+## Job fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Job identifier |
+| `status` | `string` | `"queued"` \| `"running"` \| `"completed"` \| `"failed"` |
+| `qualityGrade` | `string \| null` | `"A"` – `"D"`, set when completed |
+| `qualityScore` | `number \| null` | 0–100, set when completed |
+| `documentId` | `string \| null` | Associated document ID |
+| `hasDataset` | `boolean` | Whether a dataset has been built from this job |
+| `failureReason` | `string \| null` | Set when `status === "failed"` |
+
+---
+
+## List jobs
+
+```typescript
+const jobs = await client.jobs.list({ page: 1, pageSize: 20 });
+
+for (const job of jobs) {
+  console.log(job.id, job.status, job.qualityGrade);
+}
+```
+
+---
+
+## Get associated dataset
+
+If `job.hasDataset === true`, retrieve the built dataset:
+
+```typescript
+const dataset = await job.dataset();
+
+if (dataset) {
+  console.log(dataset.id);
+  console.log(dataset.rowCount);
+  const bytes = await dataset.export('jsonl');
+}
+```
+
+Returns `null` if no dataset has been built yet.

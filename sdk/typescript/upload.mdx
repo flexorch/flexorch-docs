@@ -1,18 +1,93 @@
 ---
 title: Upload
-description: TypeScript SDK — upload.
+description: Upload documents for processing using the TypeScript SDK.
 ---
 
-<Note>
-  Content coming soon. See the [Python SDK](sdk/python/upload) for equivalent examples — the TypeScript SDK mirrors the same interface.
-</Note>
+## Single file
 
-```bash
-npm install flexorch-sdk
-```
+Use `client.process()` — the top-level shortcut for uploading and queuing a single document:
 
 ```typescript
-import { FlexOrch } from 'flexorch-sdk';
+import { FlexOrchClient } from 'flexorch-sdk';
 
-const client = new FlexOrch({ apiKey: process.env.FLEXORCH_API_KEY! });
+const client = new FlexOrchClient();
+
+const job = await client.process('invoice.pdf');
+console.log(job.id);     // "job_abc123"
+console.log(job.status); // "queued"
 ```
+
+The returned `Job` object can be awaited with `job.wait()`.
+
+---
+
+## Multiple files
+
+```typescript
+const jobs = await client.processMany([
+  'invoices/jan.pdf',
+  'invoices/feb.pdf',
+  'payroll/q1.xlsx',
+]);
+
+console.log(jobs.length);          // 3
+console.log(jobs.map(j => j.id));  // ["job_001", "job_002", "job_003"]
+```
+
+Each file gets its own `Job`. `processMany` processes them sequentially.
+
+---
+
+## With options
+
+```typescript
+const job = await client.process('document.pdf', {
+  locale: 'tr',  // hint the pipeline language; 'und' = auto-detect (default)
+});
+```
+
+---
+
+## From a connector (S3 / GCS / Azure)
+
+If you have a connector configured, process files directly from cloud storage:
+
+```typescript
+const jobs = await client.processFromS3(
+  'connector_id_here',
+  [
+    'documents/invoice_2024.pdf',
+    'documents/payroll_q1.xlsx',
+  ],
+);
+
+for (const job of jobs) {
+  const done = await job.wait();
+  console.log(done.qualityGrade);
+}
+```
+
+See [Connectors](/connectors/overview) for setup.
+
+---
+
+## Polling manually
+
+If you need fine-grained control over polling:
+
+```typescript
+let job = await client.process('document.pdf');
+
+while (job.status === 'queued' || job.status === 'running') {
+  await new Promise(r => setTimeout(r, 2000)); // 2s
+  job = await client.jobs.get(job.id);
+}
+
+if (job.status === 'completed') {
+  console.log('Grade:', job.qualityGrade);
+} else {
+  console.error('Failed:', job.failureReason);
+}
+```
+
+Or use `job.wait()` — it handles this automatically with configurable timeout and poll interval.

@@ -1,18 +1,98 @@
 ---
 title: Quickstart
-description: TypeScript SDK — quickstart.
+description: Process your first document and export a dataset in under 5 minutes.
 ---
 
-<Note>
-  Content coming soon. See the [Python SDK](sdk/python/quickstart) for equivalent examples — the TypeScript SDK mirrors the same interface.
-</Note>
+## Prerequisites
+
+- Node.js 18+
+- A FlexOrch account and API key — generate one under **Settings → API Keys**
+
+---
+
+## Install
 
 ```bash
 npm install flexorch-sdk
 ```
 
-```typescript
-import { FlexOrch } from 'flexorch-sdk';
+---
 
-const client = new FlexOrch({ apiKey: process.env.FLEXORCH_API_KEY! });
+## Full example
+
+```typescript
+import { FlexOrchClient } from 'flexorch-sdk';
+import { writeFile } from 'node:fs/promises';
+
+const client = new FlexOrchClient(process.env.FLEXORCH_API_KEY!);
+
+// 1 — Upload and process a document
+const job = await client.process('invoice.pdf');
+console.log(job.id);      // "job_abc123"
+
+// 2 — Wait for the pipeline to finish
+const done = await job.wait({ timeout: 120 });
+console.log(done.status);        // "completed"
+console.log(done.qualityGrade);  // "A"
+
+// 3 — Build a dataset from this job
+const response = await client.datasets.list({ pageSize: 1 });
+// or build directly via REST — see Datasets page
+
+// 4 — Export as JSONL for fine-tuning
+const dataset = await client.datasets.get('ds_xyz');
+const bytes = await dataset.export('jsonl');
+await writeFile('output.jsonl', bytes);
+
+console.log('Done — output.jsonl written');
 ```
+
+---
+
+## Error handling
+
+```typescript
+import {
+  FlexOrchClient,
+  JobFailedError,
+  JobTimeoutError,
+  QuotaError,
+} from 'flexorch-sdk';
+
+const client = new FlexOrchClient();
+
+try {
+  const job = await client.process('document.pdf');
+  const done = await job.wait({ timeout: 120 });
+  console.log(done.qualityGrade);
+} catch (err) {
+  if (err instanceof JobFailedError) {
+    console.error('Processing failed:', err.reason);
+  } else if (err instanceof JobTimeoutError) {
+    console.error('Timed out waiting for job:', err.jobId);
+  } else if (err instanceof QuotaError) {
+    console.error('Credit quota exceeded — upgrade your plan');
+  } else {
+    throw err;
+  }
+}
+```
+
+---
+
+## What's next?
+
+<CardGroup cols={2}>
+  <Card title="Upload" icon="upload" href="/sdk/typescript/upload">
+    Single file, multi-file, from S3.
+  </Card>
+  <Card title="Jobs" icon="gear" href="/sdk/typescript/jobs">
+    Poll, inspect, and manage processing jobs.
+  </Card>
+  <Card title="Datasets" icon="database" href="/sdk/typescript/datasets">
+    Build, export, and index datasets.
+  </Card>
+  <Card title="Reference" icon="book" href="/sdk/typescript/reference">
+    Full API surface — all classes and methods.
+  </Card>
+</CardGroup>

@@ -1,18 +1,154 @@
 ---
-title: Reference
-description: TypeScript SDK — reference.
+title: SDK Reference
+description: Complete TypeScript SDK API surface — all classes and methods.
 ---
 
-<Note>
-  Content coming soon. See the [Python SDK](sdk/python/reference) for equivalent examples — the TypeScript SDK mirrors the same interface.
-</Note>
-
-```bash
-npm install flexorch-sdk
-```
+## FlexOrchClient
 
 ```typescript
-import { FlexOrch } from 'flexorch-sdk';
+import { FlexOrchClient } from 'flexorch-sdk';
 
-const client = new FlexOrch({ apiKey: process.env.FLEXORCH_API_KEY! });
+const client = new FlexOrchClient(apiKeyOrOptions?)
 ```
+
+**Constructor:**
+
+| Argument | Type | Description |
+|----------|------|-------------|
+| `apiKeyOrOptions` | `string \| FlexOrchClientOptions` | API key string, or options object |
+
+**FlexOrchClientOptions:**
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `apiKey` | `string` | `FLEXORCH_API_KEY` env | Your API key |
+| `baseUrl` | `string` | `https://api.flexorch.com/v1` | Base URL override |
+| `timeout` | `number` | `30` | Request timeout in seconds |
+| `maxRetries` | `number` | `3` | Retry count for transient errors |
+
+---
+
+## Top-level methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `client.process(filePath, opts?)` | `Promise<Job>` | Upload and process a single file |
+| `client.processMany(filePaths, opts?)` | `Promise<Job[]>` | Process multiple files sequentially |
+| `client.processFromS3(connectorId, keys, opts?)` | `Promise<Job[]>` | Ingest files from a connector |
+| `client.search(query, opts?)` | `Promise<SearchResult[]>` | Semantic search across indexed datasets |
+
+**process / processMany options:**
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `locale` | `string` | `"und"` | Language hint (`"tr"`, `"de"`, etc.) or `"und"` for auto-detect |
+| `pipelineConfig` | `Record<string, unknown>` | — | Advanced pipeline overrides |
+
+---
+
+## client.jobs
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `jobs.get(jobId)` | `Promise<Job>` | Fetch a job by ID |
+| `jobs.list(opts?)` | `Promise<Job[]>` | List jobs with pagination |
+
+**list options:** `{ page?: number, pageSize?: number }`
+
+---
+
+## Job
+
+| Field / Method | Type | Description |
+|----------------|------|-------------|
+| `id` | `string` | Job ID |
+| `status` | `string` | `"queued"` \| `"running"` \| `"completed"` \| `"failed"` |
+| `qualityGrade` | `string \| null` | `"A"`–`"D"` |
+| `qualityScore` | `number \| null` | 0–100 |
+| `documentId` | `string \| null` | Document ID |
+| `hasDataset` | `boolean` | Dataset has been built |
+| `failureReason` | `string \| null` | Set on failure |
+| `job.wait(opts?)` | `Promise<Job>` | Poll until completed or failed |
+| `job.dataset()` | `Promise<Dataset \| null>` | Fetch associated dataset |
+
+**wait options:** `{ timeout?: number, pollInterval?: number }` (seconds)
+
+---
+
+## client.datasets
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `datasets.get(datasetId)` | `Promise<Dataset>` | Fetch a dataset by ID |
+| `datasets.list(opts?)` | `Promise<Dataset[]>` | List datasets with pagination |
+
+---
+
+## Dataset
+
+| Field / Method | Type | Description |
+|----------------|------|-------------|
+| `id` | `string` | Dataset ID |
+| `name` | `string` | Name |
+| `slug` | `string` | URL-safe slug |
+| `status` | `string` | `"building"` \| `"ready"` \| `"failed"` |
+| `rowCount` | `number` | Number of records |
+| `createdAt` | `string` | ISO 8601 |
+| `availableFormats` | `string[]` | Generated export formats |
+| `dataset.export(format)` | `Promise<Uint8Array>` | Download export as bytes |
+| `dataset.exportToS3(connectorId, format, prefix?)` | `Promise<{ s3Key, sizeBytes }>` | Push export to a connector |
+| `dataset.index()` | `Promise<{ status, message }>` | Start semantic indexing |
+| `dataset.indexStatus()` | `Promise<{ status, chunksIndexed, totalChunks }>` | Check indexing progress |
+
+**ExportFormat:** `"json" | "jsonl" | "csv" | "parquet" | "md" | "xml" | "xlsx" | "rag"`
+
+---
+
+## client.connectors
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `connectors.create(name, type, config)` | `Promise<Connector>` | Create a connector |
+| `connectors.list()` | `Promise<Connector[]>` | List all connectors |
+| `connectors.get(connectorId)` | `Promise<Connector>` | Get a single connector |
+| `connectors.delete(connectorId)` | `Promise<void>` | Delete a connector |
+| `connectors.test(connectorId)` | `Promise<ConnectorTestResult>` | Test connectivity |
+
+**ConnectorType:** `"s3" | "gcs" | "azure_blob"`
+
+---
+
+## client.usage
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `usage.get()` | `Promise<UsageSnapshot>` | Current credit balance and plan |
+
+---
+
+## client.webhooks
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `webhooks.list()` | `Promise<Webhook[]>` | List registered webhooks |
+| `webhooks.create(url, events, secret?)` | `Promise<Webhook>` | Register a webhook |
+| `webhooks.delete(webhookId)` | `Promise<void>` | Remove a webhook |
+
+**WebhookEvent:** `"job.completed" | "job.failed" | "dataset.ready"`
+
+---
+
+## Errors
+
+| Class | Thrown when |
+|-------|-------------|
+| `AuthError` | Invalid or revoked API key (401) |
+| `QuotaError` | Credit limit exceeded (402/429) |
+| `RateLimitError` | RPM limit exceeded (429) |
+| `NotFoundError` | Resource not found (404) |
+| `ValidationError` | Bad request (400/422) |
+| `ServerError` | Server-side error (5xx) |
+| `JobFailedError` | `job.wait()` — job ended with status `"failed"` |
+| `JobTimeoutError` | `job.wait()` — timeout elapsed before completion |
+
+All errors extend `FlexOrchError`.

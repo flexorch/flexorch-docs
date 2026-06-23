@@ -1,18 +1,125 @@
 ---
 title: Datasets
-description: TypeScript SDK — datasets.
+description: Build and export datasets using the TypeScript SDK.
 ---
 
-<Note>
-  Content coming soon. See the [Python SDK](sdk/python/datasets) for equivalent examples — the TypeScript SDK mirrors the same interface.
-</Note>
-
-```bash
-npm install flexorch-sdk
-```
+## Get a dataset
 
 ```typescript
-import { FlexOrch } from 'flexorch-sdk';
+import { FlexOrchClient } from 'flexorch-sdk';
 
-const client = new FlexOrch({ apiKey: process.env.FLEXORCH_API_KEY! });
+const client = new FlexOrchClient();
+
+const dataset = await client.datasets.get('ds_abc123');
+console.log(dataset.name);             // "q1-invoices"
+console.log(dataset.rowCount);         // 42
+console.log(dataset.status);           // "ready"
+console.log(dataset.availableFormats); // ["jsonl", "csv", "parquet"]
 ```
+
+---
+
+## List datasets
+
+```typescript
+const datasets = await client.datasets.list({ page: 1, pageSize: 20 });
+
+for (const ds of datasets) {
+  console.log(ds.id, ds.name, ds.rowCount);
+}
+```
+
+---
+
+## Export
+
+`dataset.export(format)` returns a `Uint8Array`. Write it to disk with `fs.writeFile`:
+
+```typescript
+import { writeFile } from 'node:fs/promises';
+
+const dataset = await client.datasets.get('ds_abc123');
+
+// JSONL for LLM fine-tuning
+const jsonl = await dataset.export('jsonl');
+await writeFile('output.jsonl', jsonl);
+
+// Parquet for analytics
+const parquet = await dataset.export('parquet');
+await writeFile('output.parquet', parquet);
+
+// Markdown for RAG
+const md = await dataset.export('md');
+await writeFile('output.md', md);
+```
+
+**Supported formats:** `"json"` | `"jsonl"` | `"csv"` | `"parquet"` | `"md"` | `"xml"` | `"xlsx"` | `"rag"`
+
+---
+
+## Export directly to S3
+
+Push a dataset to a connected S3/GCS/Azure bucket without downloading it first:
+
+```typescript
+const result = await dataset.exportToS3(
+  'connector_id_here',
+  'jsonl',
+  'exports/datasets/', // optional prefix
+);
+
+console.log(result.s3Key);     // "exports/datasets/q1-invoices.jsonl"
+console.log(result.sizeBytes); // 148302
+```
+
+---
+
+## Semantic indexing
+
+<Note>
+  Available on **Pro and Enterprise** plans.
+</Note>
+
+Index a dataset for semantic search:
+
+```typescript
+// Start indexing (async, returns immediately)
+await dataset.index();
+
+// Poll status
+let status = await dataset.indexStatus();
+while (status.status === 'indexing') {
+  await new Promise(r => setTimeout(r, 3000));
+  status = await dataset.indexStatus();
+}
+
+console.log(status.status);        // "ready"
+console.log(status.totalChunks);   // 84
+```
+
+Then search across indexed datasets:
+
+```typescript
+const results = await client.search('invoices over 10000 EUR from Germany', {
+  topK: 5,
+  filters: { qualityGrade: 'A', language: 'de' },
+});
+
+for (const r of results) {
+  console.log(r.score, r.chunkText.slice(0, 80));
+}
+```
+
+---
+
+## Dataset fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Dataset identifier |
+| `name` | `string` | Human-readable name |
+| `slug` | `string` | URL-safe slug |
+| `status` | `string` | `"building"` \| `"ready"` \| `"failed"` |
+| `rowCount` | `number` | Number of records |
+| `createdAt` | `string` | ISO 8601 timestamp |
+| `availableFormats` | `string[]` | Formats that have been generated |
