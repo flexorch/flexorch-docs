@@ -76,9 +76,15 @@ See [PII Detection](/guides/pii-privacy) for the full type catalog.
 
 ## Credit
 
-One **credit** is consumed per processed document (one job = one credit). Dataset builds and exports do not consume credits.
+Credits are consumed per processed job. The amount depends on the **processing engine** and **document size**:
 
-Credit usage is tracked per billing period. The [Usage endpoint](/api-reference/usage) shows your current balance.
+| Engine | Credits per job |
+|--------|----------------|
+| Deterministic | ~1 credit |
+| Local AI | ~2–3 credits |
+| Premium model | ~5–15 credits |
+
+Dataset builds and exports do not consume credits. Credit usage is tracked per billing period. The [Usage endpoint](/api-reference/usage) shows your current balance.
 
 ---
 
