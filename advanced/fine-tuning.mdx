@@ -4,7 +4,7 @@ description: Export JSONL datasets and submit fine-tuning jobs to OpenAI.
 ---
 
 <Note>
-  Fine-tuning job management is an **Enterprise** feature. JSONL export for self-managed fine-tuning is available on all plans.
+  Fine-tuning job management is a **Pro+** feature. JSONL export for self-managed fine-tuning is available on all plans.
 </Note>
 
 ## Export for fine-tuning
@@ -19,9 +19,9 @@ curl "https://api.flexorch.com/v1/datasets/{id}/export?format=jsonl" \
 
 The JSONL file is formatted for direct use with OpenAI's fine-tuning API.
 
-## Managed fine-tuning (Enterprise)
+## Managed fine-tuning (Pro+)
 
-Enterprise customers can submit fine-tuning jobs directly from the platform:
+Pro and Enterprise customers can submit fine-tuning jobs directly from the platform:
 
 ```bash
 curl -X POST https://api.flexorch.com/v1/fine-tune \
