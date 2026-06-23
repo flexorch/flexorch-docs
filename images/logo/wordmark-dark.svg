@@ -1,0 +1,15 @@
+<svg width="160" height="36" viewBox="0 0 160 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- FlexOrch icon — scaled from 128x128 to 36x36 (scale 0.28125) -->
+  <g transform="scale(0.28125)">
+    <path d="M64 9L107 34V81L64 109L21 81" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M64 9L107 34" stroke="#ecab1c" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M64 9L21 34V74" stroke="#ecab1c" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M64 30C76.15 30 86 39.85 86 52C86 64.15 76.15 74 64 74" stroke="#ecab1c" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="M64 96C51.85 96 42 86.15 42 74C42 61.85 51.85 52 64 52" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <circle cx="64" cy="30" r="8" fill="#ecab1c"/>
+    <circle cx="64" cy="52" r="8" fill="#ffffff"/>
+    <circle cx="64" cy="96" r="8" fill="#ffffff"/>
+  </g>
+  <!-- "FlexOrch" wordmark — white text for dark backgrounds -->
+  <text x="42" y="25" font-family="'Segoe UI Variable','Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="19" font-weight="700" fill="#ffffff" letter-spacing="-0.4">FlexOrch</text>
+</svg>

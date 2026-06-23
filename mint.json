@@ -2,18 +2,27 @@
   "$schema": "https://mintlify.com/schema.json",
   "name": "FlexOrch",
   "logo": {
-    "light": "/images/logo/light.svg",
-    "dark": "/images/logo/dark.svg",
+    "light": "/images/logo/wordmark-light.svg",
+    "dark": "/images/logo/wordmark-dark.svg",
     "href": "https://flexorch.com"
   },
-  "favicon": "/images/favicon.png",
+  "favicon": "/images/favicon.svg",
   "colors": {
-    "primary": "#2563eb",
-    "light": "#60a5fa",
-    "dark": "#1e40af",
+    "primary": "#ecab1c",
+    "light": "#f7e8bf",
+    "dark": "#8b6118",
+    "background": {
+      "dark": "#18202d"
+    },
     "anchors": {
-      "from": "#2563eb",
-      "to": "#7c3aed"
+      "from": "#ecab1c",
+      "to": "#8b6118"
+    }
+  },
+  "font": {
+    "headings": {
+      "family": "Lora",
+      "url": "https://fonts.googleapis.com/css2?family=Lora:wght@600;700&display=swap"
     }
   },
   "topbarLinks": [
