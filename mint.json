@@ -21,8 +21,7 @@
   },
   "font": {
     "headings": {
-      "family": "Lora",
-      "url": "https://fonts.googleapis.com/css2?family=Lora:wght@600;700&display=swap"
+      "family": "Lora"
     }
   },
   "topbarLinks": [
