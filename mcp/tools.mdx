@@ -1,0 +1,262 @@
+---
+title: Tool Reference
+description: Complete parameter documentation for all 6 FlexOrch MCP tools.
+---
+
+## process_document
+
+Download a document from a URL and submit it to the FlexOrch pipeline for classification, extraction, PII detection, and quality scoring.
+
+**Parameters**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `file_url` | string | required | Public HTTP/HTTPS URL of the document. Supports PDF, DOCX, TXT, XLSX, HTML, XML, EML, JPG, PNG, TIFF. Max 50 MB. |
+| `mask_pii` | boolean | `true` | Mask detected PII in extracted fields. When `false`, raw values are returned. |
+| `document_type` | string | `"auto"` | Classification hint. Auto-detected if omitted. Values: `invoice`, `expense_report`, `purchase_order`, `sales_proposal`, `bank_statement`, `payroll`, `auto`. |
+
+**Returns**
+
+```json
+{
+  "job_id": 1234,
+  "status": "queued",
+  "poll_hint": "Use get_job_status(1234) to check progress..."
+}
+```
+
+On error:
+
+```json
+{
+  "isError": true,
+  "error": "File exceeds size limit. Max 50 MB."
+}
+```
+
+---
+
+## get_job_status
+
+Poll a processing job until it completes or fails.
+
+**Parameters**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `job_id` | integer | required | Job ID returned by `process_document` or `build_dataset`. |
+
+**Returns — completed (data_process)**
+
+```json
+{
+  "status": "completed",
+  "execution_id": 567,
+  "quality_grade": "A",
+  "quality_score": 91.0,
+  "pii_found": true,
+  "pii_masked": true,
+  "pii_count": 3,
+  "row_count": 12,
+  "has_dataset": false,
+  "poll_hint": "Use get_extraction_result(567) to retrieve fields."
+}
+```
+
+**Returns — completed (dataset_build)**
+
+```json
+{
+  "status": "completed",
+  "dataset_id": 89,
+  "dataset_name": "q1_invoices",
+  "row_count": 12,
+  "poll_hint": "Use export_dataset(89, format='jsonl') to download."
+}
+```
+
+**Returns — running**
+
+```json
+{
+  "status": "running",
+  "stage": "privacy"
+}
+```
+
+Pipeline stages: `extract` → `privacy` → `quality` → `dataset`.
+
+**Returns — failed**
+
+```json
+{
+  "status": "failed",
+  "reason": "UNSUPPORTED_FILE"
+}
+```
+
+---
+
+## get_extraction_result
+
+Retrieve structured extracted fields from a completed processing job. Returns up to 100 records inline — for larger documents, use `export_dataset`.
+
+**Parameters**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `execution_id` | integer | required | Execution ID from `get_job_status` completed response. |
+
+**Returns**
+
+```json
+{
+  "execution_id": 567,
+  "document_type": "invoice",
+  "detected_language": "tr",
+  "quality": { "grade": "A", "score": 91.0, "warnings": [] },
+  "privacy": { "pii_findings_count": 3, "pii_masked": true },
+  "row_count": 1,
+  "columns": ["invoice_number", "vendor_name", "total_amount", "currency", "due_date"],
+  "fields": [
+    {
+      "invoice_number": "FTR-2024-001",
+      "vendor_name": "[MASKED_NAME]",
+      "total_amount": 12450.00,
+      "currency": "EUR",
+      "due_date": "2024-01-15"
+    }
+  ]
+}
+```
+
+When more than 100 records exist:
+
+```json
+{
+  "has_more": true,
+  "has_more_hint": "Showing first 100 of 847 records. Call export_dataset(89, format='jsonl') to retrieve all records at once."
+}
+```
+
+When no dataset is built yet (records array empty):
+
+```json
+{
+  "fields_hint": "Field values are available after building a dataset. Call build_dataset(execution_id=567) then export_dataset(dataset_id, format)."
+}
+```
+
+<Note>
+Masked fields use the `[MASKED_TYPE]` placeholder format — e.g. `[MASKED_NAME]`, `[MASKED_EMAIL]`, `[MASKED_NATIONAL_ID_TR]`. Raw PII values are never exposed.
+</Note>
+
+---
+
+## build_dataset
+
+Build a structured, exportable dataset from a completed execution.
+
+**Parameters**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `execution_id` | integer | required | Execution ID from `get_job_status` or `get_extraction_result`. |
+| `name` | string | `""` | Dataset name. Auto-generated if omitted. |
+| `description` | string | `""` | Optional description. |
+
+**Returns**
+
+```json
+{
+  "job_id": 1235,
+  "status": "queued",
+  "poll_hint": "Use get_job_status(1235) to check build progress..."
+}
+```
+
+Poll `get_job_status` until `status` is `"completed"` — the response will include `dataset_id`.
+
+---
+
+## search_documents
+
+Search across all indexed datasets using structured keyword matching or semantic vector search.
+
+**Parameters**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `query` | string | required | Search query. Max 1000 characters. |
+| `top_k` | integer | `5` | Number of results to return. Min 1, max 50. |
+| `mode` | string | `"auto"` | Search mode: `auto`, `structured`, `semantic`, `hybrid`. Semantic and hybrid require Pro plan. |
+| `document_type` | string | `""` | Filter by document type (optional). |
+| `language` | string | `""` | Filter by language ISO 639-1 code, e.g. `"tr"`, `"en"` (optional). |
+| `quality_grade` | string | `""` | Filter by quality grade: `A`, `B`, `C`, `D` (optional). |
+
+**Returns**
+
+```json
+{
+  "results": [
+    {
+      "chunk_id": "abc-123",
+      "dataset_id": 89,
+      "dataset_name": "q1_invoices",
+      "score": 0.94,
+      "text": "Invoice FTR-2024-001 from [MASKED_NAME] for €12,450...",
+      "metadata": {
+        "doc_type": "invoice",
+        "language": "tr",
+        "quality_grade": "A",
+        "mode": "structured"
+      }
+    }
+  ],
+  "total_results": 1,
+  "mode": "structured",
+  "query": "invoice 2024"
+}
+```
+
+<Note>
+`mode="semantic"` and `mode="hybrid"` require a **Pro plan or above**. Trial and Starter plans return a `PLAN_UPGRADE_REQUIRED` error for these modes. Use `mode="auto"` to fall back to structured search automatically.
+</Note>
+
+---
+
+## export_dataset
+
+Export a built dataset and return its full content as text.
+
+**Parameters**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `dataset_id` | integer | required | Dataset ID from `get_job_status` (dataset_build completed). |
+| `format` | string | `"jsonl"` | Export format. Supported: `jsonl`, `csv`, `json`, `md`, `xml`, `rag`. |
+
+**Supported formats**
+
+| Format | Best for |
+|--------|----------|
+| `jsonl` | LLM fine-tuning (OpenAI, Mistral) |
+| `csv` | Spreadsheet analysis, Pandas |
+| `json` | General structured data |
+| `md` | Markdown-based RAG pipelines |
+| `xml` | Enterprise integrations |
+| `rag` | LangChain / LlamaIndex chunk arrays |
+
+Binary formats (`parquet`, `hf`) are not supported via MCP — download them directly from `GET /v1/datasets/{id}/export/{format}`.
+
+**Returns**
+
+```json
+{
+  "dataset_id": 89,
+  "format": "jsonl",
+  "filename": "q1-invoices.jsonl",
+  "content": "{\"invoice_number\":\"FTR-2024-001\",\"total_amount\":12450.0}\n...",
+  "byte_count": 4821
+}
+```

@@ -1,0 +1,79 @@
+---
+title: MCP Server Overview
+description: Connect Claude and other AI agents to FlexOrch through the Model Context Protocol.
+---
+
+## What is flexorch-mcp?
+
+`flexorch-mcp` is a stateless proxy that exposes the FlexOrch API as MCP (Model Context Protocol) tools. It lets Claude — and any MCP-compatible agent — process documents, extract structured data, detect PII, and export datasets through natural language tool calls.
+
+**For developers writing code:** use [flexorch-sdk](/sdk/python/quickstart) (Python) or the [TypeScript SDK](/sdk/typescript/quickstart).
+**For AI agents:** use `flexorch-mcp`.
+
+```
+pip install flexorch-mcp
+```
+
+---
+
+## How it works
+
+The MCP server acts as a thin proxy between the agent and the FlexOrch API:
+
+```
+Agent (Claude, etc.)
+  → MCP tool call
+    → flexorch-mcp server
+      → FlexOrch API (api.flexorch.com)
+        → Processed result back to agent
+```
+
+No document content or extracted data is stored by the MCP server. Every tool call goes directly to the FlexOrch API and returns the response. The server is **stateless**.
+
+---
+
+## Typical agent workflow
+
+```
+User: "Process this invoice and export it as JSONL."
+
+Agent:
+  1. process_document(file_url="https://...")     → job_id: 1234
+  2. get_job_status(1234)                          → completed, execution_id: 567
+  3. get_extraction_result(567)                    → vendor, total, IBAN [MASKED], due_date
+  4. build_dataset(execution_id=567)               → job_id: 1235
+  5. get_job_status(1235)                          → completed, dataset_id: 89
+  6. export_dataset(89, format="jsonl")            → inline JSONL content
+```
+
+---
+
+## 6 tools
+
+| Tool | Description |
+|------|-------------|
+| `process_document` | Download a document from a URL and submit it to the FlexOrch pipeline |
+| `get_job_status` | Poll a job until completed or failed |
+| `get_extraction_result` | Retrieve structured extracted fields from a completed job |
+| `build_dataset` | Build a structured dataset from a completed execution |
+| `search_documents` | Full-text and semantic search across indexed datasets |
+| `export_dataset` | Export a dataset as JSONL, CSV, JSON, MD, XML, or RAG chunks |
+
+---
+
+## Security
+
+- **API key stays server-side** — `FLEXORCH_API_KEY` is read from the environment variable, never passed as a tool argument.
+- **No local storage** — the MCP server is a stateless proxy. No document content or extracted data is written to disk.
+- **PII masking applied by FlexOrch** — extracted fields are masked before the MCP server receives them. Raw PII never reaches the agent.
+- **HTTPS only** — all communication with `api.flexorch.com` is encrypted.
+- **URL scheme validation** — `process_document` only accepts `http://` and `https://` URLs. Local file paths (`file://`) are rejected.
+
+---
+
+## Links
+
+- [PyPI](https://pypi.org/project/flexorch-mcp/) — `pip install flexorch-mcp`
+- [GitHub](https://github.com/flexorch/flexorch-mcp) — MIT license
+- [Quickstart](/mcp/quickstart) — Configure Claude Desktop in 2 minutes
+- [Tool Reference](/mcp/tools) — Full parameter documentation

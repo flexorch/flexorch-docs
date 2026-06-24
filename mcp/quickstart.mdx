@@ -1,0 +1,104 @@
+---
+title: Quickstart
+description: Configure Claude Desktop to use FlexOrch in 2 minutes.
+---
+
+## Prerequisites
+
+- Python 3.10+
+- A FlexOrch account and API key — generate one under **Settings → API Keys**
+- Claude Desktop (or another MCP-compatible client)
+
+---
+
+## 1. Install
+
+```bash
+pip install flexorch-mcp
+```
+
+Verify the installation:
+
+```bash
+FLEXORCH_API_KEY=dfx_your_key_here flexorch-mcp --check
+```
+
+Expected output:
+
+```
+FlexOrch API key : dfx_xxx***
+Connection       : OK (api.flexorch.com) ✓
+Plan             : Starter (1,200 credits/mo)
+Tools            : 6 registered
+```
+
+---
+
+## 2. Configure Claude Desktop
+
+Add the following to `~/.claude/claude_desktop_config.json` (create the file if it doesn't exist):
+
+```json
+{
+  "mcpServers": {
+    "flexorch": {
+      "command": "flexorch-mcp",
+      "env": {
+        "FLEXORCH_API_KEY": "dfx_your_key_here"
+      }
+    }
+  }
+}
+```
+
+Restart Claude Desktop. You should see "flexorch" appear in the connected servers list.
+
+---
+
+## 3. Configure Cursor
+
+In Cursor's MCP config (`.cursor/mcp.json` or the Cursor settings panel):
+
+```json
+{
+  "flexorch": {
+    "command": "flexorch-mcp",
+    "env": {
+      "FLEXORCH_API_KEY": "dfx_your_key_here"
+    }
+  }
+}
+```
+
+---
+
+## 4. Try it
+
+Ask Claude:
+
+> "Process this invoice and tell me the vendor name, total amount, and due date. Mask any PII."
+
+Then provide a URL to a document. Claude will call `process_document`, poll `get_job_status`, and return the extracted fields via `get_extraction_result`.
+
+---
+
+## Plan limits
+
+All FlexOrch plan limits apply to MCP tool calls. Credits are consumed per document processed — the same as direct API usage.
+
+| Plan | Credits/mo | Semantic search |
+|------|-----------|----------------|
+| Trial | 1,200 (30 days) | — |
+| Starter | 1,200 | — |
+| Pro | 6,000 | ✓ |
+| Enterprise | Custom | ✓ |
+
+The `search_documents` tool with `mode="semantic"` or `mode="hybrid"` requires a **Pro plan or above**. Starter and Trial plans fall back to `mode="structured"` automatically when `mode="auto"` is set.
+
+---
+
+## Next steps
+
+- [Tool Reference](/mcp/tools) — full parameter documentation for all 6 tools
+- [Connectors](/connectors/overview) — automate ingestion from S3, GCS, or Azure Blob
+- [Webhooks](/guides/webhooks) — get notified when a job completes

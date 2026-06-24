@@ -148,6 +148,14 @@
       ]
     },
     {
+      "group": "MCP Server",
+      "pages": [
+        "mcp/overview",
+        "mcp/quickstart",
+        "mcp/tools"
+      ]
+    },
+    {
       "group": "Advanced",
       "pages": [
         "advanced/byo-llm",
