@@ -10,13 +10,13 @@
   "colors": {
     "primary": "#ecab1c",
     "light": "#f7e8bf",
-    "dark": "#8b6118",
+    "dark": "#c49010",
     "background": {
       "dark": "#18202d"
     },
     "anchors": {
       "from": "#ecab1c",
-      "to": "#8b6118"
+      "to": "#c49010"
     }
   },
   "font": {
